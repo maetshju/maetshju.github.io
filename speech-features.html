@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>"Extracting speech features in Julia" &ndash; GSoC 2018 Blog</title>
+
+    <!-- Meta -->
+    <meta name="description" content="GSoC 2018 Blog &ndash; ">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Social -->
+    <meta property="article:author" content="Matt Kelley" />
+    <meta property="article:section" content="asr" />
+    <meta property="article:published_time" content="2018-05-27" />
+
+    <meta property="og:type" content="article"/>
+    <meta property="og:title" content=""Extracting speech features in Julia""/>
+    <meta property="og:description" content="Extracting the speech features in Julia God, finally! The code! Up until now, I have been trying to situate automatic speech recognition in the context of what we know about human speech because I believe this is important to be able to reason about the kind of data we&#39;re working …"/>
+    <meta property="og:site_name" content="GSoC 2018 Blog" />
+    <meta property="og:url" content="/speech-features.html"/>
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content=""Extracting speech features in Julia"">
+    <meta name="twitter:description" content="Extracting the speech features in Julia God, finally! The code! Up until now, I have been trying to situate automatic speech recognition in the context of what we know about human speech because I believe this is important to be able to reason about the kind of data we&#39;re working …">
+    <meta name="twitter:url" content="/speech-features.html">
+
+    <!-- Feed -->
+
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Open+Sans:regular,bold">
+    <link rel="stylesheet" type="text/css" href="/theme/css/w3.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/style.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/jqcloud.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/pygments-highlight-github.css">
+    <link rel="stylesheet" type="text/css" href="/static/custom.css">
+
+    <!-- Icon -->
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+
+    <!-- JavaScript -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script src="/theme/js/jqcloud.min.js"></script>
+  </head>
+
+  <body>
+    <div class="w3-row w3-card w3-white">
+      <header id="header">
+        <a href="/" id="header-logo" title="Home">MK</a>
+        <nav id="header-menu">
+          <ul>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" style="font-weight: bold;"><a href="/category/asr.html">asr</a></li>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" ><a href="/category/reflections.html">reflections</a></li>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" ><a href="/category/tips.html">tips</a></li>
+          </ul>
+        </nav>
+      </header>
+    </div>
+
+
+
+    <br><br><br>
+
+    <article>
+      <header class="w3-container col-main">
+        <h1>"Extracting speech features in Julia"</h1>
+        <div class="post-info">
+          <div class="w3-opacity w3-margin-right w3-margin-bottom" style="flex-grow: 1;">
+            <span><time datetime="2018-05-27T00:00:00-06:00">Sun 27 May 2018</time> in <a href="/category/asr.html" title="All articles in category asr">asr</a></span>
+          </div>
+          <div>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/asr.html" title="All articles with Asr tag">#asr</a>
+            </span>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/speech-features.html" title="All articles with Speech Features tag">#speech features</a>
+            </span>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/code.html" title="All articles with Code tag">#code</a>
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <br>
+
+
+      <div class="col-main w3-container">
+        <section id="content">
+          <h1>Extracting the speech features in Julia</h1>
+<p>God, finally! The code! Up until now, I have been trying to situate automatic speech recognition in the context of what we know about human speech because I believe this is important to be able to reason about the kind of data we're working with, and also to demonstrate some of the complexity of this problem. But now, we can begin solving the problem.</p>
+<p>A lot of research in speech recognition uses the TIMIT data set (Garofalo et al., 1993) as a benchmark for how well their system performs, and that is the data set we will be using ourselves.</p>
+<p>The data set is distributed on through the <a href="https://catalog.ldc.upenn.edu/LDC93S1">Linguistic Data Consortium website</a>. It comes separated into a training set and a test set. There are a number of recordings for each speaker in the corpus. Each recording is mono, and it is sampled at 16,000 Hz (meaning that measurements were taken from the microphone 16,000 times per second during recording), and they are stored in a sphere format with a .WAV file extension.</p>
+<p>Each recording is accompanied by transcriptions of what is said in them. There is an orthographic transcription, and a phonological transcription. We're concerned with the phonological transcription. It comes formatted in three columns, where the first column contains the sample point at which the label starts, the second column contains the sample point at which the label ends, and the third column contains the phonetic label, and the file extension is ".PHN".</p>
+<p>The first task that needs to be undertaken is to convert the files from sphere format WAV files to riff format WAV files because modern scientific software packages don't read the as of now anitquated sphere format. There are a number of ways that this can be done, and I will leave it to you to determine how exactly you wish to accomplish this. There are some <a href="https://stackoverflow.com/questions/47370167/change-huge-amount-of-data-from-nist-to-riff-wav-file">solutions on StackOverflow</a> using Sox (StackOverflow contributors, 2017), and the Linguistic Data Consortium provides <a href="https://www.ldc.upenn.edu/language-resources/tools/sphere-conversion-tools">its own tools</a> (Linguistic Data Consortium, n.d.) for performing this conversion.</p>
+<p>All converted now? Good. The code I'm going to be presenting assumes that the converted files replaced the old files. If this is not the case for you, you will need to modify the code accordingly. There are two main tasks now: calculating the features, and determining the labels for each time step in the features. The script that performs all of this is  <a href="https://github.com/maetshju/gsoc2018/blob/master/speech-cnn/00-data.jl">on my GitHub</a>.</p>
+<h2>Calculating the speech features</h2>
+<p>The features Zhang et al. (2017) chose is a Mel filterbank with 40 filters and the energy coefficient, as well as delta and delta-delta coefficients for those coefficients. Filterbanks are always calculated over some period of time. While we could pass an entire audio file to the function that calculates the filterbank, it would not be helpful to to do so because we would lose any time related information about the audio, which is crucial because audio signals unfold over time.</p>
+<p>To avoid this, speech recognition programs tend to calculate their features over small sections of time called <strong>windows</strong> or <strong>frames</strong>, and they move the window over the audio until all the different <strong>frames</strong> have been processed. The paper we're implementing does not, as far as I can tell, specify the parameters of this process, so I assume they're using the standard window length of 25 ms and move the window 10 ms forward each time the features are calculated. This is what we're going to do.</p>
+<p>Luckily, there is already a library that will do this for us called MFCC.jl. However, at the time of writing, there is a small bug in the function that we need to calculate the features, so you will need to use <a href="https://github.com/maetshju/MFCC.jl">the fork I've made of it</a> until my pull request to fix the bug is resolved:</p>
+<div class="highlight"><pre><span></span><span class="n">Pkg</span><span class="o">.</span><span class="n">clone</span><span class="p">(</span><span class="s">&quot;https://github.com/maetshju/MFCC.jl.git&quot;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>The function we want to use is called <code>audspec</code>, which will take in an <code>Array</code> of the samples from reading a WAV file and produce the filterbank. The energy coefficient is calculated by taking the log of the sum of the power spectrum, calculated by calling <code>powspec</code>. Then, we use the function <code>deltas</code> to calculate the delta and delta-delta coefficients. This process might look about like this:</p>
+<div class="highlight"><pre><span></span><span class="n">samps</span><span class="p">,</span> <span class="n">sr</span> <span class="o">=</span> <span class="n">wavread</span><span class="p">(</span><span class="n">wavFname</span><span class="p">)</span>
+<span class="n">samps</span> <span class="o">=</span> <span class="n">vec</span><span class="p">(</span><span class="n">samps</span><span class="p">)</span>
+<span class="n">frames</span> <span class="o">=</span> <span class="n">powspec</span><span class="p">(</span><span class="n">samps</span><span class="p">,</span> <span class="n">sr</span><span class="p">;</span> <span class="n">wintime</span><span class="o">=</span><span class="n">FRAME_LENGTH</span><span class="p">,</span> <span class="n">steptime</span><span class="o">=</span><span class="n">FRAME_INTERVAL</span><span class="p">)</span>
+<span class="n">energies</span> <span class="o">=</span> <span class="n">log</span><span class="o">.</span><span class="p">(</span><span class="n">sum</span><span class="p">(</span><span class="n">frames</span><span class="o">&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<span class="n">fbanks</span> <span class="o">=</span> <span class="n">audspec</span><span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="n">sr</span><span class="p">;</span> <span class="n">nfilts</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">fbtype</span><span class="o">=:</span><span class="n">mel</span><span class="p">)</span><span class="o">&#39;</span>
+<span class="n">fbanks</span> <span class="o">=</span> <span class="n">hcat</span><span class="p">(</span><span class="n">fbanks</span><span class="p">,</span> <span class="n">energies</span><span class="p">)</span>
+<span class="n">fbank_deltas</span> <span class="o">=</span> <span class="n">deltas</span><span class="p">(</span><span class="n">fbanks</span><span class="p">)</span>
+<span class="n">fbank_deltadeltas</span> <span class="o">=</span> <span class="n">deltas</span><span class="p">(</span><span class="n">fbank_deltas</span><span class="p">)</span>
+<span class="n">features</span> <span class="o">=</span> <span class="n">hcat</span><span class="p">(</span><span class="n">fbanks</span><span class="p">,</span> <span class="n">fbank_deltas</span><span class="p">,</span> <span class="n">fbank_deltadeltas</span><span class="p">)</span>
+</pre></div>
+
+
+<p>In this snippet, I assume that you've already imported the correct packages and have a string representing the path to the WAV file to be processed stored in <code>wavFname</code>. I also use constants to represent what the frame length and frame interval are supposed to be. In this case, they are set to 0.025 and 0.010, respectively, to represent the values in seconds.</p>
+<p>There are a couple extra steps I take in the script I provide because standard approaches throw away any frames that are associated with the label 'q', denoting a glottal stop, and they also exclude any WAV files that are part of the speaker accent (SA) recordings. But this is the bulk of the work.</p>
+<p>(As a note, I have not see anyone justify why they remove items labeled with 'q' or the speaker accent recordings, but I imagine the 'q' label is too infrequent to be learned easily, and removing the speaker accents makes it easier for the network since the data set becomes a bit more homogeneous. If I'm right, these are artificial inflations to the accuracy rates of the networks, which would make sense becuase this data set is often used for benchmarking new approaches to speech recognition).</p>
+<p>These frames can be laid out to represent the filterbank signals over time, which is what we'll be doing. Now, we have to determine what the labels are for each of the frames.</p>
+<h2>Determining labels for the frames</h2>
+<p>Because the TIMIT data set comes phonetically-aligned, we can determine what the label is for each individual frame. When the entire frame is within boundaries defined by the start and end times of a label, the frame is associated with the label whose region it's in.</p>
+<p>However, if the frame ends up split between two different labels, we have to make a decision. I have not encountered any explicit explanations of what researchers have done. However, what makes the most sense to me is to say that the associated label is the one whose region has the majority of the frame in it. And in the case where the frame is split 50-50 over a boundary, I choose the current label over the next one to favor longer segments over shorter ones.</p>
+<p>The easiest way I've found to determine the sequence of labels is to simulate moving the window through the signal by iterating through the indices of the collection of frames and using those indices to convert to sample numbers to find the relevant label in the TIMIT PHN files.</p>
+<p>First, however, we need to read in the PHN files to determine the labels and their boundaries:</p>
+<div class="highlight"><pre><span></span><span class="kd">local</span> <span class="n">lines</span>
+<span class="n">open</span><span class="p">(</span><span class="n">phnFname</span><span class="p">,</span> <span class="s">&quot;r&quot;</span><span class="p">)</span> <span class="k">do</span> <span class="n">f</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">readlines</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="k">end</span>
+
+<span class="n">boundaries</span> <span class="o">=</span> <span class="kt">Vector</span><span class="p">()</span>
+<span class="n">labels</span> <span class="o">=</span> <span class="kt">Vector</span><span class="p">()</span>
+
+<span class="c"># first field in the file is the beginning sample number, which isn&#39;t</span>
+<span class="c"># needed for calculating where the labels are</span>
+<span class="k">for</span> <span class="n">line</span> <span class="kp">in</span> <span class="n">lines</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">boundary</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="n">split</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+    <span class="n">boundary</span> <span class="o">=</span> <span class="n">parse</span><span class="p">(</span><span class="kt">Int64</span><span class="p">,</span> <span class="n">boundary</span><span class="p">)</span>
+    <span class="n">push!</span><span class="p">(</span><span class="n">boundaries</span><span class="p">,</span> <span class="n">boundary</span><span class="p">)</span>
+    <span class="n">push!</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+<span class="k">end</span>
+</pre></div>
+
+
+<p>Then, we can perform the iteration through the items in the collection of frames to build the sequence of labels. Note that <code>FRAME_LENGTH</code> and <code>FRAME_INTERVAL</code> are constants containing the width of the frame in seconds and what the interval is between frames in seconds, respectively. If you're using the default values of 25 ms frames at every 10 ms for the speech features, they will be 0.025 and 0.010, respectively, and <code>sr</code> will be 16,000 samples per second.</p>
+<div class="highlight"><pre><span></span><span class="n">frameLengthSamples</span> <span class="o">=</span> <span class="n">FRAME_LENGTH</span> <span class="o">*</span> <span class="n">sr</span>
+<span class="n">frameIntervalSamples</span> <span class="o">=</span> <span class="n">FRAME_INTERVAL</span> <span class="o">*</span> <span class="n">sr</span>
+<span class="n">halfFrameLength</span> <span class="o">=</span> <span class="n">FRAME_LENGTH</span> <span class="o">/</span> <span class="mi">2</span>
+
+<span class="n">labelSequence</span> <span class="o">=</span> <span class="kt">Vector</span><span class="p">()</span> <span class="c"># Holds the sequence of labels</span>
+
+<span class="k">for</span> <span class="n">i</span><span class="o">=</span><span class="mi">1</span><span class="o">:</span><span class="n">size</span><span class="p">(</span><span class="n">fbanks</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">win_end</span> <span class="o">=</span> <span class="n">frameLengthSamples</span> <span class="o">+</span> <span class="p">(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">frameIntervalSamples</span>
+
+    <span class="c"># Move on to next label if current frame of samples is more than half</span>
+    <span class="c"># way into next labeled section and there are still more labels to</span>
+    <span class="c"># iterate through</span>
+    <span class="k">if</span> <span class="n">labelInfoIdx</span> <span class="o">&lt;</span> <span class="n">nSegments</span> <span class="o">&amp;&amp;</span> <span class="n">win_end</span> <span class="o">-</span> <span class="n">boundary</span> <span class="o">&gt;</span> <span class="n">halfFrameLength</span>
+
+        <span class="n">labelInfoIdx</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">boundary</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="n">labelInfo</span><span class="p">[</span><span class="n">labelInfoIdx</span><span class="p">]</span>
+    <span class="k">end</span>
+
+    <span class="n">push!</span><span class="p">(</span><span class="n">labelSequence</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+<span class="k">end</span>
+</pre></div>
+
+
+<p>After this step, your features and labels should be ready to go for you to save or continue processing however you like.</p>
+<h1>Conclusion</h1>
+<p>After reading this post, I hope you come away understanding how speech data can be represented for deep learning networks, as well as how to extract features like Mel filterbanks using the Julia programming language and its ecosystem of packages.</p>
+<p>If you're interested, I have a more in-depth implementation of feature extraction in my <a href="https://github.com/maetshju/gsoc2018/blob/master/speech-cnn/00-data.jl">Google Summer of Code 2018 repository</a>. It hews closer to implementing the paper I've selected in that it performs phoneme folding and removes those labeled as 'q'.</p>
+<h1>References</h1>
+<p>Garofalo, J. S., Lamel, L. F., Fisher, W. M., Fiscus, J. G., Pallett, D. S., &amp; Dahlgren, N. L. (1993). The DARPA TIMIT acoustic-phonetic continuous speech corpus cdrom. Linguistic Data Consortium.</p>
+<p>Linguistic Data Consortium. (n. d.). SPHERE conversion tools. Retrieved May 27, 2018 from <a href="https://web.archive.org/web/20180528014420/https://www.ldc.upenn.edu/language-resources/tools/sphere-conversion-tools">https://web.archive.org/web/20180528014420/https://www.ldc.upenn.edu/language-resources/tools/sphere-conversion-tools</a>.</p>
+<p>StackOverflow constributors. (2017). Change huge amount of data from NIST to RIFF wav file. Retrieved May 27 from <a href="https://web.archive.org/web/20180528013655/https://stackoverflow.com/questions/47370167/change-huge-amount-of-data-from-nist-to-riff-wav-file">https://web.archive.org/web/20180528013655/https://stackoverflow.com/questions/47370167/change-huge-amount-of-data-from-nist-to-riff-wav-file</a>.</p>
+<p>Zhang, Y., Pezeshki, M., Brakel, P., Zhang, S., Bengio, C. L. Y., &amp; Courville, A. (2017). Towards end-to-end speech recognition with deep convolutional neural networks. <em>arXiv preprint arXiv:1701.02720</em>.</p>
+        </section>
+
+        <br><br><br>
+
+        <footer>
+          <div class="adjust-width">
+            <div id="author-block" class="w3-light-grey w3-border">
+              <div id="author-info">
+                <a href=""><img style="width: 60px; height: 60px;" src="theme/images/avatar.jpg" onerror="this.src='theme/images/avatar.png'" alt="Avatar"></a>
+                <div style="margin-left: 20px; margin-top: 15px;">
+                  <a href=""><span id="author-name" class="w3-hover-text-dark-grey">Matt Kelley</span></a>
+                  <p id="author-story">I'm a PhD student at the University of Alberta. I am participating in Google Summer of Code 2018. I'm working on implementing and documenting a deep neural net for speech recognition with the Flux machine learning library in the Julia programming language.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <br><br><br>
+
+          <p style="font-size:10pt; font-style: italic;">Did you like this article? Share it with your friends!</p>
+          <div id="share" class="share">
+            <a href="http://www.facebook.com/sharer.php?u=/speech-features.html&amp;t=GSoC%202018%20Blog%3A%20%22Extracting%20speech%20features%20in%20Julia%22" target="_blank" class="w3-btn w3-indigo">
+              <i class="fa fa-facebook"></i> <span>Facebook</span>
+            </a>
+            <a href="http://twitter.com/share?url=/speech-features.html&amp;text=GSoC%202018%20Blog%3A%20%22Extracting%20speech%20features%20in%20Julia%22" target="_blank" class="w3-btn w3-blue">
+              <i class="fa fa-twitter"></i> <span>Twitter</span>
+            </a>
+            <a href="https://plus.google.com/share?url=/speech-features.html" onclick="javascript:window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;" class="w3-btn w3-red">
+              <i class="fa fa-google-plus"></i> <span>Google</span>
+            </a>
+          </div>
+
+          <br><br><br>
+
+
+
+        </footer>
+      </div>
+    </article>
+
+
+    <footer id="footer">
+      <div id="footer-copyright" class="w3-center w3-small w3-text-grey w3-padding-48">
+        <span>&copy; 2018 Matt Kelley </span>
+      </div>
+    </footer>
+
+
+
+  </body>
+</html>

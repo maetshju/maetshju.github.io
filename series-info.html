@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>"Introduction: deep learning for speech recognition" &ndash; GSoC 2018 Blog</title>
+
+    <!-- Meta -->
+    <meta name="description" content="GSoC 2018 Blog &ndash; ">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Social -->
+    <meta property="article:author" content="Matt Kelley" />
+    <meta property="article:section" content="asr" />
+    <meta property="article:published_time" content="2018-05-26" />
+
+    <meta property="og:type" content="article"/>
+    <meta property="og:title" content=""Introduction: deep learning for speech recognition""/>
+    <meta property="og:description" content="Deep learning for speech recognition blog series: Introduction This is the first in a series of posts documenting my process in setting up a deep learning speech recognition system described by Zhang et al. (2017) in Julia using the Flux machine learning package for my Google Summer of Code 2018 …"/>
+    <meta property="og:site_name" content="GSoC 2018 Blog" />
+    <meta property="og:url" content="/series-info.html"/>
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content=""Introduction: deep learning for speech recognition"">
+    <meta name="twitter:description" content="Deep learning for speech recognition blog series: Introduction This is the first in a series of posts documenting my process in setting up a deep learning speech recognition system described by Zhang et al. (2017) in Julia using the Flux machine learning package for my Google Summer of Code 2018 …">
+    <meta name="twitter:url" content="/series-info.html">
+
+    <!-- Feed -->
+
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Open+Sans:regular,bold">
+    <link rel="stylesheet" type="text/css" href="/theme/css/w3.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/style.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/jqcloud.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/pygments-highlight-github.css">
+    <link rel="stylesheet" type="text/css" href="/static/custom.css">
+
+    <!-- Icon -->
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+
+    <!-- JavaScript -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script src="/theme/js/jqcloud.min.js"></script>
+  </head>
+
+  <body>
+    <div class="w3-row w3-card w3-white">
+      <header id="header">
+        <a href="/" id="header-logo" title="Home">MK</a>
+        <nav id="header-menu">
+          <ul>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" style="font-weight: bold;"><a href="/category/asr.html">asr</a></li>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" ><a href="/category/reflections.html">reflections</a></li>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" ><a href="/category/tips.html">tips</a></li>
+          </ul>
+        </nav>
+      </header>
+    </div>
+
+
+
+    <br><br><br>
+
+    <article>
+      <header class="w3-container col-main">
+        <h1>"Introduction: deep learning for speech recognition"</h1>
+        <div class="post-info">
+          <div class="w3-opacity w3-margin-right w3-margin-bottom" style="flex-grow: 1;">
+            <span><time datetime="2018-05-26T00:00:00-06:00">Sat 26 May 2018</time> in <a href="/category/asr.html" title="All articles in category asr">asr</a></span>
+          </div>
+          <div>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/asr.html" title="All articles with Asr tag">#asr</a>
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <br>
+
+
+      <div class="col-main w3-container">
+        <section id="content">
+          <h1>Deep learning for speech recognition blog series: Introduction</h1>
+<p>This is the first in a series of posts documenting my process in setting up a deep learning speech recognition system described by Zhang et al. (2017) in Julia using the Flux machine learning package for my Google Summer of Code 2018 project. A note on these posts, I wrote the bulk of them on the date that I have written for them. However, some of them are published on subsequent days, and I may update them from time to time.</p>
+<p>My Google Summer of Code 2018 project centers around developing a Julia implementation of the aforementioned system described by Zhang et al. (2017) using the Flux library. It will be contributed to the model zoo at the end of it. I believe this is important work because speech recognition is popular right now, and the model zoo does not yet have a model that does automatic speech recognition. This is not a problem unique to Flux, however, because there are few easily accessible deep neural network code implementations of speech recognition systems.</p>
+<p>This series is not intended to be an introduction to deep learning <em>per se</em>, but rather, an introduction to using deep learning techniques for speech recognition. It is targeted toward those who know about deep learning generally, but are relative newcomers to speech and speech data. I will attempt to reference relevant introductory material when relevant, however. Additionally, I will be using a mostly APA-style citation format when I make references to documents, articles, tutorials, books, etc. You are under no obligation to read through them if what I've written seems clear, but if you find something confusing or are simply curious, the citations are there for you.</p>
+<p>If you are in need of an introduction to deep learning, there are a number of resources available. My personal favorite is <a href="https://www.manning.com/books/deep-learning-with-python"><em>Deep Learning with Python</em></a> (Chollet, 2017), and there is also a version of it for R called <a href="https://www.manning.com/books/deep-learning-with-r"><em>Deep Learning with R</em></a> (Chollet &amp; Allaire, 2018). For those who wish to delve more deeply into the mathematical and theoretical underpinnings of deep learning, there is the <a href="www.deeplearningbook.org"><em>Deep Learning</em></a> book (Goodfellow, Bendio, &amp; Courville), though in my opinion, it is not for the faint of heart and nor particularly compelling for a front-to-back reading. Practical examples of deep learning can be found on the <a href="https://machinelearningmastery.com/">Machine Learning Mastery website</a> (Brownlee, 2018), and build-up of theory into application on the MNIST data set is available in the [<em>Neural Netowrks and Deep Learning</em> online book[(http://neuralnetworksanddeeplearning.com) (Nielson, 2015).</p>
+<p>All right. So, presuming that you're at least familiar with deep learning concepts (you don't need to be a pro; I don't consider myself to be, either), you should be prepared to read this series. Broadly, the series will consist of an introduction to speech data and different ways to represent them (which is what this post is), a discussion of the network architecture, a tutorial on the connectionist temporal classification loss function (as described in Graves et al. (2006) and <a href="https://www.cs.toronto.edu/~graves/preprint.pdf">Graves (2012)</a>), and finally a discussion of the activation functions and an overall description of the finished network.</p>
+<p>But, that's enough of the formalities. Let's get started with this entry's topic: speech. I will begin by describing the process of speaking up until producing an acoustic signal, then I will briefly discuss different approaches to analyzing that acoustic signal, and I will conclude with a code demonstration of extracting the speech features that I will be using in the speech recognition model I'm implementing.</p>
+<p>Once you have read this entry in the series, you should have enough domain knowledge to begin building the speech recognition system and hopefully be able to search for other resources to satisfy any curiosities you have. Additionally, I hope you will come away with a greater appreciation for the complexity of speech and the automatic speech recognition problem domain. Finally, and perhaps most importantly, you should have the skills to extract speech features using the <a href="https://www.julialang.org/">Julia programming language</a> and relevant software packages.</p>
+<h1>Speech</h1>
+<p>The act of producing speech is one of those activities we engage in virtually every day in hearing communities. It feels natural, and on the surface, it seems quite simple. On further inspection, however, it is remarkably complex and involves the coordination of a great number of body parts and mental processes. (Note that I will not be attending much to the human mental processes here, as they seem to be largely irrelevant to the engineering of an accurate speech recognition model on computers.)</p>
+<h2>The physiological aspects of speech</h2>
+<p>Putting aside cognitive processes, speech begins in the lungs. The diaphgragm contracts to expel air from the lungs up into the vocal tract. At the beginning of the vocal tract is the larynx, containing the glottis, itself containing the vocal folds (which are casually referred to as vocal cords). The vocal folds open and close to modulate the flow of air through the vocal folds. This modulated air then makes its way up through the trachea, past the epiglottis and pharynx, and into the oral and nasal cavities. A diagram of the vocal tract may be seen in Figure 1.</p>
+<p><img alt="Figure 1: Sagittal view of the mouth and vocal tract from *Grey's Anatomy* 1918 edition, as presented by the Wikipedia page on the vocal tract (Wikipedia contributors, 2018d). Image in the public domain." src="imgs/sagittalmouth.png"><br>
+Figure 1: Sagittal view of the mouth and vocal tract from <em>Grey's Anatomy</em> 1918 edition, as presented by the Wikipedia page on the vocal tract (Wikipedia contributors, 2018d). Image in the public domain.</p>
+<p>From the time at which the air stream is in the glottis up until it leaves the body, movable organs may intervene and shape the air stream. These movements have different effects on the acoustic signal, which will be discussed in a subsequent section. Linguists (phoneticians in particular) and speech scientists have identified these organs that are involved in the articulation of speech, and we call them <strong>articulators</strong>. The movements of the articulators in the process of speaking is complex, and they move in a continuous (as opposed to discrete) fashion. In ultrasounds and MRIs of the oral cavity, the tongue can be seen darting from corner to corner of the mouth, taking on a variety of shapes and making contact with many different regions of the mouth. There are a handful of videos of MRI and ulstrasound imaging on the tongue on YouTube, <a href="https://www.youtube.com/watch?v=Z8yysjQeYT4">such as this one</a>. (The audio and video get slowed down considerably to show the articulations, at the cost of the audio becoming a bit creepy-sounding.)</p>
+<p>In spite of the continuous nature of the orchestra of articulator movements, though, researchers have catalogued many attested common movement patterns, which are referred to as <strong>speech segments</strong> or <strong>phones</strong>. They are described in three dimensions: their <strong>voicing</strong>, their <strong>place of articulation</strong>, and their <strong>manner of articulation</strong>. In an articulatory sense, voicing refers to whether the vocal folds are vibrating while the segment is being articulated. The phone [z] at the start of the word <em>zoo</em> is voiced (as is the vowel component), and you can feel this if you place your hand on your throat while speaking the word. The place of articulation is, as the name suggests, the place in the vocal tract where a particular phone is realized. Using the example of [z] again, it is articulated with the tongue at the alveolar ridge, so we say it is an alveolar sound. The manner of articulation describes how a phone is realized. The phone [z] is realized as a fricative, meaning that there is a place of constriction and the air stream is fricated as it passes through the constriction. Together, these three dimensions describe the phone [z], which is referred to as a <strong>voiced alveolar fricative</strong>.</p>
+<p>The International Phonetic Alphabet (International Phonetic Association, 1999), commonly referred to as the IPA, catalogs the phones that have been found across the world's languages. The <a href="https://en.wikipedia.org/wiki/International_Phonetic_Alphabet">Wikipedia page on the IPA</a> (Wikipedia contributors, 2018a) is informative, and it has links to pages with recordings of most of the sounds. With this alphabet that relates to articulation, researchers who work with or reason about speech data (like speech scientists, linguists (especially phoneticians and phonologists), and speech pathologists) can create transcriptions of speech events that are much better at describing the actual speech event than orthographic representations.</p>
+<p>To summarize this section on the articulation of speech, the speech process begins with forcing air from the lungs. This stream of air is shpaed on its way out of the body by movements of different speech organs called articulators. There are observable patterns ißn the movement of these articulators, which researchers refer to as speech segments or phones. And, phones are important because they provide a way of transcribing a speech event that is better related to the speech event than spelling is. If you are interested in reading more on articulation, the book <em>Articulatory Phonetics</em> (Gick, Wilson, &amp; Derrick, 2013) should be a good choice.</p>
+<p>The idea of these transcription tools is important for our purposes because they are used widely across speech recognition system as the targets to identify in the speech stream, which is possible because these articulations ultimately result in differences in the acoustic signal produced. The next section gives an overview of how speech produces an acoustic signal, which is ultimately the bassis of speech recognition.</p>
+<h1>References</h1>
+<p>Brownlee, J. (2018). <em>Machine learning mastery</em>. Retrieved May 26, 2018, from <a href="https://machinelearningmastery.com/">https://machinelearningmastery.com/</a>.</p>
+<p>Chollet, F. (2017). <em>Deep learning with Python</em>. New York: Manning Publications.</p>
+<p>Chollet, F., &amp; Allaire, J. J. (2018). <em>Deep Learning with R</em>. New York: Manning Publications.</p>
+<p>Goodfellow, I., Bengio, Y., Courville, A., &amp; Bengio, Y. (2016). <em>Deep learning</em>. Cambridge: MIT Press.</p>
+<p>Graves, A. (2012). <em>Supervised sequence labelling with recurrent neural networks</em>. Berlin: Springer. Preprint available at <a href="https://www.cs.toronto.edu/~graves/preprint.pdf">https://www.cs.toronto.edu/~graves/preprint.pdf</a>.</p>
+<p>Graves, A., Fernández, S., Gomez, F., &amp; Schmidhuber, J. (2006, June). Connectionist temporal classification: Labelling unsegmented sequence data with recurrent neural networks. In <em>Proceedings of the 23rd international conference on machine learning</em> (pp. 369-376). ACM.</p>
+<p>Nielson, M. A. (2015). <em>Neural networks and deep learning</em>. Determination Press. Retrieved May 26, 2018 from <a href="http://neuralnetworksanddeeplearning.com/">http://neuralnetworksanddeeplearning.com/</a>.</p>
+<p>Wikipedia contributors. (2017, December 5). Bark scale. In <em>Wikipedia, the free encyclopedia</em>. Retrieved May 26, 2018, from <a href="https://en.wikipedia.org/w/index.php?title=Bark_scale&amp;oldid=813742442">https://en.wikipedia.org/w/index.php?title=Bark_scale&amp;oldid=813742442</a>.</p>
+<p>Zhang, Y., Pezeshki, M., Brakel, P., Zhang, S., Bengio, C. L. Y., &amp; Courville, A. (2017). Towards end-to-end speech recognition with deep convolutional neural networks. <em>arXiv preprint arXiv:1701.02720</em>.</p>
+        </section>
+
+        <br><br><br>
+
+        <footer>
+          <div class="adjust-width">
+            <div id="author-block" class="w3-light-grey w3-border">
+              <div id="author-info">
+                <a href=""><img style="width: 60px; height: 60px;" src="theme/images/avatar.jpg" onerror="this.src='theme/images/avatar.png'" alt="Avatar"></a>
+                <div style="margin-left: 20px; margin-top: 15px;">
+                  <a href=""><span id="author-name" class="w3-hover-text-dark-grey">Matt Kelley</span></a>
+                  <p id="author-story">I'm a PhD student at the University of Alberta. I am participating in Google Summer of Code 2018. I'm working on implementing and documenting a deep neural net for speech recognition with the Flux machine learning library in the Julia programming language.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <br><br><br>
+
+          <p style="font-size:10pt; font-style: italic;">Did you like this article? Share it with your friends!</p>
+          <div id="share" class="share">
+            <a href="http://www.facebook.com/sharer.php?u=/series-info.html&amp;t=GSoC%202018%20Blog%3A%20%22Introduction%3A%20deep%20learning%20for%20speech%20recognition%22" target="_blank" class="w3-btn w3-indigo">
+              <i class="fa fa-facebook"></i> <span>Facebook</span>
+            </a>
+            <a href="http://twitter.com/share?url=/series-info.html&amp;text=GSoC%202018%20Blog%3A%20%22Introduction%3A%20deep%20learning%20for%20speech%20recognition%22" target="_blank" class="w3-btn w3-blue">
+              <i class="fa fa-twitter"></i> <span>Twitter</span>
+            </a>
+            <a href="https://plus.google.com/share?url=/series-info.html" onclick="javascript:window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;" class="w3-btn w3-red">
+              <i class="fa fa-google-plus"></i> <span>Google</span>
+            </a>
+          </div>
+
+          <br><br><br>
+
+
+
+        </footer>
+      </div>
+    </article>
+
+
+    <footer id="footer">
+      <div id="footer-copyright" class="w3-center w3-small w3-text-grey w3-padding-48">
+        <span>&copy; 2018 Matt Kelley </span>
+      </div>
+    </footer>
+
+
+
+  </body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>"The acoustics of speech" &ndash; GSoC 2018 Blog</title>
+
+    <!-- Meta -->
+    <meta name="description" content="GSoC 2018 Blog &ndash; ">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Social -->
+    <meta property="article:author" content="Matt Kelley" />
+    <meta property="article:section" content="asr" />
+    <meta property="article:published_time" content="2018-05-26" />
+
+    <meta property="og:type" content="article"/>
+    <meta property="og:title" content=""The acoustics of speech""/>
+    <meta property="og:description" content="In the last post, we discussed the articulatory aspects of speech. This post will build on that one and discuss the acoustic aspects of speech. The acoustic aspects of speech When speaking, a sound wave is produced. This is the air stream that is produced and modulated during the process …"/>
+    <meta property="og:site_name" content="GSoC 2018 Blog" />
+    <meta property="og:url" content="/acoustics.html"/>
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content=""The acoustics of speech"">
+    <meta name="twitter:description" content="In the last post, we discussed the articulatory aspects of speech. This post will build on that one and discuss the acoustic aspects of speech. The acoustic aspects of speech When speaking, a sound wave is produced. This is the air stream that is produced and modulated during the process …">
+    <meta name="twitter:url" content="/acoustics.html">
+
+    <!-- Feed -->
+
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Open+Sans:regular,bold">
+    <link rel="stylesheet" type="text/css" href="/theme/css/w3.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/style.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/jqcloud.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/pygments-highlight-github.css">
+    <link rel="stylesheet" type="text/css" href="/static/custom.css">
+
+    <!-- Icon -->
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+
+    <!-- JavaScript -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script src="/theme/js/jqcloud.min.js"></script>
+  </head>
+
+  <body>
+    <div class="w3-row w3-card w3-white">
+      <header id="header">
+        <a href="/" id="header-logo" title="Home">MK</a>
+        <nav id="header-menu">
+          <ul>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" style="font-weight: bold;"><a href="/category/asr.html">asr</a></li>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" ><a href="/category/reflections.html">reflections</a></li>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" ><a href="/category/tips.html">tips</a></li>
+          </ul>
+        </nav>
+      </header>
+    </div>
+
+
+
+    <br><br><br>
+
+    <article>
+      <header class="w3-container col-main">
+        <h1>"The acoustics of speech"</h1>
+        <div class="post-info">
+          <div class="w3-opacity w3-margin-right w3-margin-bottom" style="flex-grow: 1;">
+            <span><time datetime="2018-05-26T00:00:00-06:00">Sat 26 May 2018</time> in <a href="/category/asr.html" title="All articles in category asr">asr</a></span>
+          </div>
+          <div>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/asr.html" title="All articles with Asr tag">#asr</a>
+            </span>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/acoustics.html" title="All articles with Acoustics tag">#acoustics</a>
+            </span>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/speech.html" title="All articles with Speech tag">#speech</a>
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <br>
+
+
+      <div class="col-main w3-container">
+        <section id="content">
+          <p>In the last post, we discussed the articulatory aspects of speech. This post will build on that one and discuss the acoustic aspects of speech.</p>
+<h1>The acoustic aspects of speech</h1>
+<p>When speaking, a sound wave is produced. This is the air stream that is produced and modulated during the process of articulating phones. Because it is a sound wave, we can analyze it acoustically. Let's start by returning to the glottis and vocal folds. The vocal folds can open and close. When the vocal folds are open while air is passing throug them, the air passes through in what is an essentially random manner that would be perceived as noise if other articulators didn't modulate the stream (think about breathing onto your hands to warm them up). When the folds are nearly closed, they vibrate in a cyclic way, which causes the air stream to move in a cyclic way, sounding like a buzz or hum if unmodulated (think of saying "uhhhhh..." in a mindless way). The effect of these two positions on the air stream forms the acoustic basis for the voiced/voiceless dimension of articulation. Additionally, the faster the vocal folds vibrate, the higher the pitch of the resultant acoustic signal. This information is contained in the lower frequency ranges of the sounds humans produce, and it is part of what constitutes tone in tonal languages like Mandarin, Yoruba, and Zapotecan languages.</p>
+<p>As the air stream passes through the rest of the vocal tract, the shape of the tubes it passes through (the rest of the trachea, the mouth, and, potentially, the nasal cavity) help to modulate the air stream. The result of the rest of the air stream's journey is that it adds higher-frequency energy to the air stream, which is used to distinguish between phones when listening to speech. Based on the resonant frequencies of the speaker's vocal tract, certain frequency bands will be more intense than others. These bands are called <strong>formants</strong>, and they are the primary cues for distinguishing vowel identity in speech, and they are also used in the process of identifying stops (e.g., [b] vs. [d]). Multiple models have been proposed to predict aspects of this process. Johnson (2012) discusses the source-filter theory, tube models, and perturbation theory, if you are interested in learning more about how mainpulations of the physical shape of the vocal tract can affect the acoustic signal.</p>
+<p>After the air stream leaves the body, it is a complex wave. That is, to define it with mathematical functions would require the composition of multiple sinusoids. The wave is <strong>longitudinal</strong>, so the energy in the wave is transfered by a series of air particles smacking into each other. Wikipedia's page on <a href="https://en.wikipedia.org/wiki/Longitudinal_wave">longitudinal waves</a> (Wikipedia contributors, 2018) has an illustration of what this kind of wave looks like.</p>
+<p>The instruments we use to measure and record sound events rely on the way the wave propagates through the air in this successive smacking manner. Both the microphone and the eardrum are sensitive to how intensely their sensors are depressed, which produces an amplitude measure. Over time, what results is a series of amplitude measures over time. The eardrum's are more or less continuous, but a digital microphone's measurements will be discrete and spaced out depending on the sampling rate (how often it takes measurements from its sensor). We can't easily take the same measurements as our eardrum, but we do have easy access to what a microphone's measurements are. When visualized, these measurements of intensity produce the waveform of audio that you have probably seen before. An example of this can be seen in figures 2 and 3. In figure 3, I've zoomed in far enough that you can see the cycles of the [i] vowel I produced. The x-axes are time, and the y-axes are intensity measure.</p>
+<p><img alt="Figure 2: Waveform of a recording of me saying &quot;speech&quot;" src="imgs/speechwaveform.png">
+Figure 2: Waveform of a recording of me saying "speech."</p>
+<p><img alt="Figure 3: Zoomed-in slice of waveform for the [i] in the recording of &quot;speech&quot;" src="imgs/iwaveform.png">
+Figure 3: Zoomed-in slice of waveform for the [i] in the recording of "speech."</p>
+<p>This is all fine and dandy, and if you were to play this back based on just the intensity measure, you would end up with essentially the same signal. However, we know that humans do not use this intensity information directly. Rather, the cilia in the ear beyond the ear drum are sensitive to certain frequency information and ultimately end up passing frequency information on to the cochlea before the information is processed and understood. That is to say that the acoustic information that's matched to meaning in the mind is both a time and frequency domain, and not merely just the intensity values. And, indeed, it is easier to distinguish between phones when looking at a time-frequency representation, at least analytically. I provide such an example below in figure 4. The x-axis is time, the y-axis is frequency, and the darker a region is, the more energy there is at that frequency.</p>
+<p><img alt="Figure 4: Spectrogram of me saying &quot;speech&quot;" src="imgs/speechspectrogram.png">
+Figure 4: Waveform of a recording of me saying "speech."</p>
+<p>Using a combination of primarily the spectrogram, and secondarily the waveform, a researcher can determine where the approximate boundaries are between the phones in the recording. (Recall that the signal is continuous, and placing discrete labels on it will thus be an approximate process). I have annotated my recording of "speech" in Figure 5 to show what this looks like.</p>
+<p><img alt="Figure 5: Annotated spectrogram and waveform of me saying &quot;speech&quot;" src="imgs/alignment.png">
+Figure 5: Annotated spectrogram and waveform of me saying "speech."</p>
+<p>This barely scratches the surface of acoustic approaches to speech data, but I hope that it will suffice to give you a sense of what kind of data is being fed into the neural network. If you are interested in learning more, Johnson's (2012) <em>Acoustic and auditory phonetics</em> is a great resource. Additionally, if you would like to explore speech data and be able to visualize it with relative ease, the <a href="http://praat.org">Praat program</a> (Boersma &amp; Weenik, 2018) is freely available for a variety of computer platforms. It is the program I used to produce the waveform, spectrogram, and annotation I provided here, and it is widely used across phonetics, phonology, and speech science.</p>
+<h1>Conclusion</h1>
+<p>In this post, I discussed the acoustic aspects of speech. You should come away from it with a basic understanding of what is at stake in the acoustic signal. This is essential since automatic speech recognition works to understand the segments that I've discussed here. In the next post, I'll discuss speech features and automatic speech recognition.</p>
+<h1>References</h1>
+<p>Boersma, P., &amp; Weenik, D. Praat, version 6.0.40 [software program]. Available at <a href="http://praat.org">http://praat.org</a>.</p>
+<p>Johnson, K. (2012). <em>Acoustic and auditory phonetics</em>. Malden: Wiley-Blackwell.</p>
+<p>Wikipedia contributors. (2018). Longitudinal wave. In <em>Wikipedia, the free encyclopedia</em>. Retrieved May 26, 2018, from <a href="https://en.wikipedia.org/w/index.php?title=Longitudinal_wave&amp;oldid=842176163">https://en.wikipedia.org/w/index.php?title=Longitudinal_wave&amp;oldid=842176163</a></p>
+        </section>
+
+        <br><br><br>
+
+        <footer>
+          <div class="adjust-width">
+            <div id="author-block" class="w3-light-grey w3-border">
+              <div id="author-info">
+                <a href=""><img style="width: 60px; height: 60px;" src="theme/images/avatar.jpg" onerror="this.src='theme/images/avatar.png'" alt="Avatar"></a>
+                <div style="margin-left: 20px; margin-top: 15px;">
+                  <a href=""><span id="author-name" class="w3-hover-text-dark-grey">Matt Kelley</span></a>
+                  <p id="author-story">I'm a PhD student at the University of Alberta. I am participating in Google Summer of Code 2018. I'm working on implementing and documenting a deep neural net for speech recognition with the Flux machine learning library in the Julia programming language.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <br><br><br>
+
+          <p style="font-size:10pt; font-style: italic;">Did you like this article? Share it with your friends!</p>
+          <div id="share" class="share">
+            <a href="http://www.facebook.com/sharer.php?u=/acoustics.html&amp;t=GSoC%202018%20Blog%3A%20%22The%20acoustics%20of%20speech%22" target="_blank" class="w3-btn w3-indigo">
+              <i class="fa fa-facebook"></i> <span>Facebook</span>
+            </a>
+            <a href="http://twitter.com/share?url=/acoustics.html&amp;text=GSoC%202018%20Blog%3A%20%22The%20acoustics%20of%20speech%22" target="_blank" class="w3-btn w3-blue">
+              <i class="fa fa-twitter"></i> <span>Twitter</span>
+            </a>
+            <a href="https://plus.google.com/share?url=/acoustics.html" onclick="javascript:window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;" class="w3-btn w3-red">
+              <i class="fa fa-google-plus"></i> <span>Google</span>
+            </a>
+          </div>
+
+          <br><br><br>
+
+
+
+        </footer>
+      </div>
+    </article>
+
+
+    <footer id="footer">
+      <div id="footer-copyright" class="w3-center w3-small w3-text-grey w3-padding-48">
+        <span>&copy; 2018 Matt Kelley </span>
+      </div>
+    </footer>
+
+
+
+  </body>
+</html>
