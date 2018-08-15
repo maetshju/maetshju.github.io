@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>"Those bugs that hide" &ndash; GSoC 2018 Blog</title>
+
+    <!-- Meta -->
+    <meta name="description" content="GSoC 2018 Blog &ndash; ">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Social -->
+    <meta property="article:author" content="Matt Kelley" />
+    <meta property="article:section" content="updates" />
+    <meta property="article:published_time" content="2018-08-06" />
+
+    <meta property="og:type" content="article"/>
+    <meta property="og:title" content=""Those bugs that hide""/>
+    <meta property="og:description" content="Here we are at the penultimate blog post. Things finally look like they&#39;re wrapping up! There was a key discrepancy I noticed between the code I was working from and the connectionist temporal classification (CTC) algorithm as described by Graves (2012) and how it was impelemented in Baidu&#39;s warp-ctc library …"/>
+    <meta property="og:site_name" content="GSoC 2018 Blog" />
+    <meta property="og:url" content="/update5.html"/>
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content=""Those bugs that hide"">
+    <meta name="twitter:description" content="Here we are at the penultimate blog post. Things finally look like they&#39;re wrapping up! There was a key discrepancy I noticed between the code I was working from and the connectionist temporal classification (CTC) algorithm as described by Graves (2012) and how it was impelemented in Baidu&#39;s warp-ctc library …">
+    <meta name="twitter:url" content="/update5.html">
+
+    <!-- Feed -->
+
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Open+Sans:regular,bold">
+    <link rel="stylesheet" type="text/css" href="/theme/css/w3.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/style.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/jqcloud.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/pygments-highlight-github.css">
+    <link rel="stylesheet" type="text/css" href="/static/custom.css">
+
+    <!-- Icon -->
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+
+    <!-- JavaScript -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script src="/theme/js/jqcloud.min.js"></script>
+  </head>
+
+  <body>
+    <div class="w3-row w3-card w3-white">
+      <header id="header">
+        <a href="/" id="header-logo" title="Home">MK</a>
+        <nav id="header-menu">
+          <ul>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" ><a href="/category/asr.html">asr</a></li>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" ><a href="/category/reflections.html">reflections</a></li>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" ><a href="/category/tips.html">tips</a></li>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" style="font-weight: bold;"><a href="/category/updates.html">updates</a></li>
+          </ul>
+        </nav>
+      </header>
+    </div>
+
+
+
+    <br><br><br>
+
+    <article>
+      <header class="w3-container col-main">
+        <h1>"Those bugs that hide"</h1>
+        <div class="post-info">
+          <div class="w3-opacity w3-margin-right w3-margin-bottom" style="flex-grow: 1;">
+            <span><time datetime="2018-08-06T00:00:00-06:00">Mon 06 August 2018</time> in <a href="/category/updates.html" title="All articles in category updates">updates</a></span>
+          </div>
+          <div>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/gsoc.html" title="All articles with Gsoc tag">#gsoc</a>
+            </span>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/updates.html" title="All articles with Updates tag">#updates</a>
+            </span>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/ctc.html" title="All articles with Ctc tag">#ctc</a>
+            </span>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/gpu.html" title="All articles with Gpu tag">#gpu</a>
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <br>
+
+
+      <div class="col-main w3-container">
+        <section id="content">
+          <p>Here we are at the penultimate blog post. Things finally look like they're wrapping up! There was a key discrepancy I noticed between the code I was working from and the connectionist temporal classification (CTC) algorithm as described by Graves (2012) and how it was impelemented in Baidu's warp-ctc library. I want to preface my further remarks here by saying that I have not investigated whether or the discrepancy makes sense in context in the warp-ctc library; it's possible that this discrepancy when taken together wither other modifications they made will return correct results. What I can say for now is that it did not give <em>me</em> correct results in the basic port I made.</p>
+<h1>The beta coefficients</h1>
+<p>Part of the CTC algorithm involves calculating beta coefficients, which is essentially the probability of getting to a specific label at a specific time, but working from the end backward, instead from the beginning forward. Graves (2012) gvies the definition as follows:</p>
+<div class="math">$$\beta(t, u) = \sum_{i = u}^{g(u)} \beta(t + 1, i)y_{{l'}_i}^{t + 1}\, .$$</div>
+<p>However, <a href="https://github.com/baidu-research/warp-ctc/blob/6d5b8fac130638862d97dc48ef43a8d7b5a503bb/include/detail/gpu_ctc_kernels.h#L350-L360">the code in the warp-ctc library</a> as I read it evaluates as</p>
+<div class="math">$$\beta(t, u) = y_{{l'}_u}^{t + 1}\sum_{i = u}^{g(u)} \beta(t + 1, i)\, .$$</div>
+<p>It should be apparent that these two formulations will not come out to be equivalent, since the value by which each term in the summation is multiplied by in the first formulation is different, whereas in the second, they are all multiplied by the same term. Once I changed my code to match the first formulation instead of the second, I saw a significant decrease in the loss values in the network, as well as seeing the network finally begin to output predictions. They are, at the moment, not very usable, but it is still substantially better than seeing all blanks being output.</p>
+<p>I only noticed this difference between the two formulations when I was trying to get a CPU implementation of this loss function to match my GPU version but couldn't get them to match completely. When I investigated the differences, I saw that the beta coefficients didn't match, and that led me to check Graves' (2012) specification again.</p>
+<h1>Example output</h1>
+<p>Here is an example of what the network is outputting now.</p>
+<p>Textual transcription:</p>
+<blockquote>
+<p>The reasons for this dive seemed foolish now.</p>
+</blockquote>
+<p>Target sequence of phones:</p>
+<blockquote>
+<p>h# dh ix r iy z ax n z f axr dh ih s dcl d ay v s iy m dcl d f uw l ix sh epi n aw h# </p>
+</blockquote>
+<p>Predicted sequence of phones:</p>
+<blockquote>
+<p>h# pau w iy bcl r iy ux z bcl b iy bcl b uw z ay n pcl p z iy n dcl d v w iy er h#</p>
+</blockquote>
+<p>The phone error rate for this sequence of predictions from the target sequence is approximately 84% (based on the edit distance divided by the length of the longer sequence). On inspection, it is making some errors that are expected, like confusing [ix] for [iy], which are acoustically similar (they are both high vowels).</p>
+<h1>Where to now?</h1>
+<p>Now that the CTC loss function seems to be working correctly, what's left to do is simply train the network.</p>
+<h1>References</h1>
+<p>Graves, A. (2012). <em>Supervised sequence labelling</em>. Springer, Berlin, Heidelberg.</p>
+<script type="text/javascript">if (!document.getElementById('mathjaxscript_pelican_#%@#$@#')) {
+    var align = "center",
+        indent = "0em",
+        linebreak = "false";
+
+    if (false) {
+        align = (screen.width < 768) ? "left" : align;
+        indent = (screen.width < 768) ? "0em" : indent;
+        linebreak = (screen.width < 768) ? 'true' : linebreak;
+    }
+
+    var mathjaxscript = document.createElement('script');
+    mathjaxscript.id = 'mathjaxscript_pelican_#%@#$@#';
+    mathjaxscript.type = 'text/javascript';
+    mathjaxscript.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/latest.js?config=TeX-AMS-MML_HTMLorMML';
+    mathjaxscript[(window.opera ? "innerHTML" : "text")] =
+        "MathJax.Hub.Config({" +
+        "    config: ['MMLorHTML.js']," +
+        "    TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } }," +
+        "    jax: ['input/TeX','input/MathML','output/HTML-CSS']," +
+        "    extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']," +
+        "    displayAlign: '"+ align +"'," +
+        "    displayIndent: '"+ indent +"'," +
+        "    showMathMenu: true," +
+        "    messageStyle: 'normal'," +
+        "    tex2jax: { " +
+        "        inlineMath: [ ['\\\\(','\\\\)'] ], " +
+        "        displayMath: [ ['$$','$$'] ]," +
+        "        processEscapes: true," +
+        "        preview: 'TeX'," +
+        "    }, " +
+        "    'HTML-CSS': { " +
+        "        styles: { '.MathJax_Display, .MathJax .mo, .MathJax .mi, .MathJax .mn': {color: 'inherit ! important'} }," +
+        "        linebreaks: { automatic: "+ linebreak +", width: '90% container' }," +
+        "    }, " +
+        "}); " +
+        "if ('default' !== 'default') {" +
+            "MathJax.Hub.Register.StartupHook('HTML-CSS Jax Ready',function () {" +
+                "var VARIANT = MathJax.OutputJax['HTML-CSS'].FONTDATA.VARIANT;" +
+                "VARIANT['normal'].fonts.unshift('MathJax_default');" +
+                "VARIANT['bold'].fonts.unshift('MathJax_default-bold');" +
+                "VARIANT['italic'].fonts.unshift('MathJax_default-italic');" +
+                "VARIANT['-tex-mathit'].fonts.unshift('MathJax_default-italic');" +
+            "});" +
+            "MathJax.Hub.Register.StartupHook('SVG Jax Ready',function () {" +
+                "var VARIANT = MathJax.OutputJax.SVG.FONTDATA.VARIANT;" +
+                "VARIANT['normal'].fonts.unshift('MathJax_default');" +
+                "VARIANT['bold'].fonts.unshift('MathJax_default-bold');" +
+                "VARIANT['italic'].fonts.unshift('MathJax_default-italic');" +
+                "VARIANT['-tex-mathit'].fonts.unshift('MathJax_default-italic');" +
+            "});" +
+        "}";
+    (document.body || document.getElementsByTagName('head')[0]).appendChild(mathjaxscript);
+}
+</script>
+        </section>
+
+        <br><br><br>
+
+        <footer>
+          <div class="adjust-width">
+            <div id="author-block" class="w3-light-grey w3-border">
+              <div id="author-info">
+                <a href=""><img style="width: 60px; height: 60px;" src="theme/images/avatar.jpg" onerror="this.src='theme/images/avatar.png'" alt="Avatar"></a>
+                <div style="margin-left: 20px; margin-top: 15px;">
+                  <a href=""><span id="author-name" class="w3-hover-text-dark-grey">Matt Kelley</span></a>
+                  <p id="author-story">I'm a PhD student at the University of Alberta. I am participating in Google Summer of Code 2018. I'm working on implementing and documenting a deep neural net for speech recognition with the Flux machine learning library in the Julia programming language.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <br><br><br>
+
+          <p style="font-size:10pt; font-style: italic;">Did you like this article? Share it with your friends!</p>
+          <div id="share" class="share">
+            <a href="http://www.facebook.com/sharer.php?u=/update5.html&amp;t=GSoC%202018%20Blog%3A%20%22Those%20bugs%20that%20hide%22" target="_blank" class="w3-btn w3-indigo">
+              <i class="fa fa-facebook"></i> <span>Facebook</span>
+            </a>
+            <a href="http://twitter.com/share?url=/update5.html&amp;text=GSoC%202018%20Blog%3A%20%22Those%20bugs%20that%20hide%22" target="_blank" class="w3-btn w3-blue">
+              <i class="fa fa-twitter"></i> <span>Twitter</span>
+            </a>
+            <a href="https://plus.google.com/share?url=/update5.html" onclick="javascript:window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;" class="w3-btn w3-red">
+              <i class="fa fa-google-plus"></i> <span>Google</span>
+            </a>
+          </div>
+
+          <br><br><br>
+
+
+
+        </footer>
+      </div>
+    </article>
+
+
+    <footer id="footer">
+      <div id="footer-copyright" class="w3-center w3-small w3-text-grey w3-padding-48">
+        <span>&copy; 2018 Matt Kelley </span>
+      </div>
+    </footer>
+
+
+
+  </body>
+</html>

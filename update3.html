@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>"Coding period two update: GPU coding and gradients" &ndash; GSoC 2018 Blog</title>
+
+    <!-- Meta -->
+    <meta name="description" content="GSoC 2018 Blog &ndash; ">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Social -->
+    <meta property="article:author" content="Matt Kelley" />
+    <meta property="article:section" content="updates" />
+    <meta property="article:published_time" content="2018-07-08" />
+
+    <meta property="og:type" content="article"/>
+    <meta property="og:title" content=""Coding period two update: GPU coding and gradients""/>
+    <meta property="og:description" content="I&#39;d like to begin this post with a word of advice: never assume that the problem you&#39;re working on is too complex to find useful information on using Google. I&#39;m sure you&#39;re at least acutely aware of this, but reinforce it for yourself for a moment. It will be relevant …"/>
+    <meta property="og:site_name" content="GSoC 2018 Blog" />
+    <meta property="og:url" content="/update3.html"/>
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content=""Coding period two update: GPU coding and gradients"">
+    <meta name="twitter:description" content="I&#39;d like to begin this post with a word of advice: never assume that the problem you&#39;re working on is too complex to find useful information on using Google. I&#39;m sure you&#39;re at least acutely aware of this, but reinforce it for yourself for a moment. It will be relevant …">
+    <meta name="twitter:url" content="/update3.html">
+
+    <!-- Feed -->
+
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Open+Sans:regular,bold">
+    <link rel="stylesheet" type="text/css" href="/theme/css/w3.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/style.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/jqcloud.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/pygments-highlight-github.css">
+    <link rel="stylesheet" type="text/css" href="/static/custom.css">
+
+    <!-- Icon -->
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+
+    <!-- JavaScript -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script src="/theme/js/jqcloud.min.js"></script>
+  </head>
+
+  <body>
+    <div class="w3-row w3-card w3-white">
+      <header id="header">
+        <a href="/" id="header-logo" title="Home">MK</a>
+        <nav id="header-menu">
+          <ul>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" ><a href="/category/asr.html">asr</a></li>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" ><a href="/category/reflections.html">reflections</a></li>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" ><a href="/category/tips.html">tips</a></li>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" style="font-weight: bold;"><a href="/category/updates.html">updates</a></li>
+          </ul>
+        </nav>
+      </header>
+    </div>
+
+
+
+    <br><br><br>
+
+    <article>
+      <header class="w3-container col-main">
+        <h1>"Coding period two update: GPU coding and gradients"</h1>
+        <div class="post-info">
+          <div class="w3-opacity w3-margin-right w3-margin-bottom" style="flex-grow: 1;">
+            <span><time datetime="2018-07-08T00:00:00-06:00">Sun 08 July 2018</time> in <a href="/category/updates.html" title="All articles in category updates">updates</a></span>
+          </div>
+          <div>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/gsoc.html" title="All articles with Gsoc tag">#gsoc</a>
+            </span>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/updates.html" title="All articles with Updates tag">#updates</a>
+            </span>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/ctc.html" title="All articles with Ctc tag">#ctc</a>
+            </span>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/gpu.html" title="All articles with Gpu tag">#gpu</a>
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <br>
+
+
+      <div class="col-main w3-container">
+        <section id="content">
+          <p>I'd like to begin this post with a word of advice: never assume that the problem you're working on is too complex to find useful information on using Google. I'm sure you're at least acutely aware of this, but reinforce it for yourself for a moment. It will be relevant in a short while in this post.</p>
+<p>This coding period has been devoted almost entirely to getting the neural net to train with the connectionist temporal classification loss. This process principally involved two tasks: getting a GPU implementation of loss function to work properly, and getting the gradients from the loss to properly backpropagate. Below, I will detail the work on both of these processes.</p>
+<h1>Implementing CTC on the GPU</h1>
+<p>The first task I confronted was the GPU implementation of the loss function, which <a href="https://maetshju.github.io/update2.html">I have blogged about previously</a>. I used <a href="https://github.com/baidu-research/warp-ctc">Baidu's warp-ctc implementation</a> as a basis for beginning the Julia implementation of the algorithm, but I diverged from their implementation in several ways. The first of these was that they used some memory tricks on the GPU wherein they moved data between global and shared memory, which I have not coded into the Julia implementation. The reason for this is that I wanted to ensure the algorithm was working properly before trying to implement what seemed to be a speedup operation. The second way the Julia implementation diverges is in how it calculates the sum values used in the calculating the gradients. Warp-ctc uses a key-value sort to arrange the data and make it possible to map from strings values to integers representing classes. In the Julia implementation, I already had integers representing the classes, so I was able to use those to index the matrix holding the sum value directly, instead of having to try to map from the strings to the integers.</p>
+<p>Overall, the coding process for this has been a consistent daily effort, since I felt that I was fighting a hydra; every time I fixed one issue (such as an indexing error in one of the kernels), a new one would crop up. At the time of this writing, however, I believe that it is operating correctly, as it is calculating values that match for a problem I have worked by hand.</p>
+<h1>Correct backpropagation</h1>
+<p>The second task was to ensure that the gradients were backpropagating correctly through the network. This does not mean, however, that I was checking Flux's backpropagation implementation. Rather, I was making sure that the data I was using were formatted correctly so that the backpropagation would work properly. One of the things that I found I had done at one point was separate a matrix of data from its record of functions that had been applied to it. This was a sneaky error because I hadn't expected it, but it caused the backpropagation to only reach a certain layer, because one of the layers had no record of what came before it. This problem vexed me for a while, but I eventually found the solution, which had to do with an extra call to <code>cpu</code> or <code>gpu</code> (I don't remember which, unfortunately). It's worth mentioning that part of th reason this is harder is because the gradients are calculated in the GPU kernel, so I can't just call Flux's wonderful <code>back!</code> function on the loss value, since the loss value isn't tracked and can't be automatically differentiated.</p>
+<p>But even after I got the gradients flowing correctly, I was still greatly concerned about the network because it very quickly came to consistently output only one class label (within only one or two training utterances). This just felt incredibly wrong to me, but it also made sense because that class, the blank label, shows up just over 50% of the time, and virtually every label could potentially be assigned that label.</p>
+<p>This is where that lesson about Googling I started out with comes in. I was sure that there wouldn't be any meaningful results if I Googled this problem, so I refrained from doing so for a while. Today, though, I finally swallowed my pride and searched for information on this. And, what would you know? There was [an extensive post[(https://web.archive.org/web/20180709041144/http://www.tbluche.com/ctc_and_blank.html) about this very issue with blank labels. It turns out that it is documented behavior of networks using connectionist temporal classification loss to quickly begin to only output the blank label, and only after more training learn to occastionally output other class labels. I've already said it once, but don't make that assumption that a quick search on Google won't pull up useful results; it only takes a few seconds.</p>
+<h1>What's done at this point</h1>
+<p>At this point, it feels prudent to summarize what has been accomplished so far.</p>
+<ul>
+<li>The data extraction routine works, and the data should be extracted properly at this point.</li>
+<li>The tricky CTC loss has been implemented on a GPU now, which is necessary since running it on the CPU is painfully slow.</li>
+<li>The gradient backpropagation routine should be working. It's hard to say though at this moment that there aren't hidden bugs because I haven't gotten the network to run through all the data at this point.</li>
+</ul>
+<h1>What remains to be done</h1>
+<p>In this last stretch, there are two tasks I see that remain to be done for the network itself.</p>
+<ul>
+<li>Get the network to run through all the data. At this point, I'm running into memory issues on the GPU, which I'm hopeful should be resolvable by not loading as many files into the GPU memory at one time.</li>
+<li>Implement the maxout activation function. The final architecture of the network I'm implementing uses this activation function instead of ReLU.</li>
+</ul>
+<p>In trying to be a good code custodian, there are a few tasks remaining in terms of documentation, as well.</p>
+<ul>
+<li>Write a post describing the connectionist temporal classification loss at a high level.</li>
+<li>Write a post describing the maxout activation function.</li>
+<li>Clean up and document the code I've written,</li>
+<li>Create a full demonstration of the speech recognition system that maps from acoustics to phoneme labels.</li>
+</ul>
+<h1>Onward</h1>
+<p>The middle of any journey <a href="https://en.wikipedia.org/wiki/Hero%27s_journey">in the monomyth fashion</a> is the hardest. It can feel like a place of despair and hopelessness, and I will be the first to attest to experiencing at least a modicum of those feelings during this coding period. But I can see the way forward now, and I'm feeling much more confident about the project.</p>
+<p>You can check out the daily versions of the training routine and CTC implementation <a href="https://github.com/maetshju/gsoc2018/tree/daily/speech-cnn">on my GitHub</a>. They are still undergoing debugging and such, so I don't yet want to push them to my master branch. As far as I can tell, however, the kernels are working properly for the CTC code. The relevant portion of the <code>02-speech-cnn.jl</code> file is the <code>ctctrain!</code> function, and the kernels are the interesting bits in the <code>warp-ctc.jl</code> file.</p>
+        </section>
+
+        <br><br><br>
+
+        <footer>
+          <div class="adjust-width">
+            <div id="author-block" class="w3-light-grey w3-border">
+              <div id="author-info">
+                <a href=""><img style="width: 60px; height: 60px;" src="theme/images/avatar.jpg" onerror="this.src='theme/images/avatar.png'" alt="Avatar"></a>
+                <div style="margin-left: 20px; margin-top: 15px;">
+                  <a href=""><span id="author-name" class="w3-hover-text-dark-grey">Matt Kelley</span></a>
+                  <p id="author-story">I'm a PhD student at the University of Alberta. I am participating in Google Summer of Code 2018. I'm working on implementing and documenting a deep neural net for speech recognition with the Flux machine learning library in the Julia programming language.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <br><br><br>
+
+          <p style="font-size:10pt; font-style: italic;">Did you like this article? Share it with your friends!</p>
+          <div id="share" class="share">
+            <a href="http://www.facebook.com/sharer.php?u=/update3.html&amp;t=GSoC%202018%20Blog%3A%20%22Coding%20period%20two%20update%3A%20GPU%20coding%20and%20gradients%22" target="_blank" class="w3-btn w3-indigo">
+              <i class="fa fa-facebook"></i> <span>Facebook</span>
+            </a>
+            <a href="http://twitter.com/share?url=/update3.html&amp;text=GSoC%202018%20Blog%3A%20%22Coding%20period%20two%20update%3A%20GPU%20coding%20and%20gradients%22" target="_blank" class="w3-btn w3-blue">
+              <i class="fa fa-twitter"></i> <span>Twitter</span>
+            </a>
+            <a href="https://plus.google.com/share?url=/update3.html" onclick="javascript:window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;" class="w3-btn w3-red">
+              <i class="fa fa-google-plus"></i> <span>Google</span>
+            </a>
+          </div>
+
+          <br><br><br>
+
+
+
+        </footer>
+      </div>
+    </article>
+
+
+    <footer id="footer">
+      <div id="footer-copyright" class="w3-center w3-small w3-text-grey w3-padding-48">
+        <span>&copy; 2018 Matt Kelley </span>
+      </div>
+    </footer>
+
+
+
+  </body>
+</html>

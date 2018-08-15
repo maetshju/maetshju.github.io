@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>"The network architecture" &ndash; GSoC 2018 Blog</title>
+
+    <!-- Meta -->
+    <meta name="description" content="GSoC 2018 Blog &ndash; ">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Social -->
+    <meta property="article:author" content="Matt Kelley" />
+    <meta property="article:section" content="asr" />
+    <meta property="article:published_time" content="2018-06-09" />
+
+    <meta property="og:type" content="article"/>
+    <meta property="og:title" content=""The network architecture""/>
+    <meta property="og:description" content="UPDATE July 25, 2018: I have changed the network into one chain of functions instead of two that had to be managed with another function. This version should also have the kernels oriented the right way to replicate the paper. Using convolutional layers for speech data There are a number …"/>
+    <meta property="og:site_name" content="GSoC 2018 Blog" />
+    <meta property="og:url" content="/architecture.html"/>
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content=""The network architecture"">
+    <meta name="twitter:description" content="UPDATE July 25, 2018: I have changed the network into one chain of functions instead of two that had to be managed with another function. This version should also have the kernels oriented the right way to replicate the paper. Using convolutional layers for speech data There are a number …">
+    <meta name="twitter:url" content="/architecture.html">
+
+    <!-- Feed -->
+
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Open+Sans:regular,bold">
+    <link rel="stylesheet" type="text/css" href="/theme/css/w3.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/style.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/jqcloud.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/pygments-highlight-github.css">
+    <link rel="stylesheet" type="text/css" href="/static/custom.css">
+
+    <!-- Icon -->
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+
+    <!-- JavaScript -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script src="/theme/js/jqcloud.min.js"></script>
+  </head>
+
+  <body>
+    <div class="w3-row w3-card w3-white">
+      <header id="header">
+        <a href="/" id="header-logo" title="Home">MK</a>
+        <nav id="header-menu">
+          <ul>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" style="font-weight: bold;"><a href="/category/asr.html">asr</a></li>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" ><a href="/category/reflections.html">reflections</a></li>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" ><a href="/category/tips.html">tips</a></li>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" ><a href="/category/updates.html">updates</a></li>
+          </ul>
+        </nav>
+      </header>
+    </div>
+
+
+
+    <br><br><br>
+
+    <article>
+      <header class="w3-container col-main">
+        <h1>"The network architecture"</h1>
+        <div class="post-info">
+          <div class="w3-opacity w3-margin-right w3-margin-bottom" style="flex-grow: 1;">
+            <span><time datetime="2018-06-09T00:00:00-06:00">Sat 09 June 2018</time> in <a href="/category/asr.html" title="All articles in category asr">asr</a></span>
+          </div>
+          <div>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/asr.html" title="All articles with Asr tag">#asr</a>
+            </span>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/convolution.html" title="All articles with Convolution tag">#convolution</a>
+            </span>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/flux.html" title="All articles with Flux tag">#flux</a>
+            </span>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/code.html" title="All articles with Code tag">#code</a>
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <br>
+
+
+      <div class="col-main w3-container">
+        <section id="content">
+          <p>UPDATE July 25, 2018: I have changed the network into one chain of functions instead of two that had to be managed with another function. This version should also have the kernels oriented the right way to replicate the paper.</p>
+<h1>Using convolutional layers for speech data</h1>
+<p>There are a number of different layer types that you could use for speech data. What I've seen widely used are convolutional and recurrent layers, or a mix of them. Fully-connected layers only ever seem to appear in conjunction with the convolutional and/or recurrent layers.</p>
+<p>As with most uses of convolutional layers, the idea is that they will learn features useful for the task the network is being asked to do. For speech data, we might hope that they learn filterbanks if the yare used with raw audio data, or that they are tracking something important to speech perception like formants.</p>
+<p>In the context of the speech data that we have—Mel filterbanks—we're going to perform the convolutions in a specific way. Principally, Zhang et al. (2017) designed a network architecture that they believe was able to learn temporal dependencies while also reducing dimensionality in the frequency domain. They accomplished this by having only one max-pooling layer, and it was right after the first convolutional layer. The pooling layer was such that it only pooled in the frequency domain. And, subsequent convolutions did not reduce dimensionality in the frequency domain (such as with stride length), nor did they reduce the number of time steps present in the signal.</p>
+<p>They had 10 total convolutional layers, and it is precisely this depth that the authors argue allowed the network to learn temporal dependencies. They did not provide any visualizations that seemed to suggest this, though they were getting comparable results with their network as compared to those that used recurrent layers.</p>
+<p>After the convolutions, they had 3 fully-connected layers. They did not speak to how exactly they connected these, but they got predictions at each time step. The only readily apparent way to do this is to flatten the results of the final convolution, and then feed each time step in that array into the fully-connected layer individually.</p>
+<p>If that final part seems complex, it really isn't. At least, if you're using Flux. So, let's get down to it!</p>
+<h1>Implementing the network architecture in Julia using Flux</h1>
+<p>It's quite easy to set up the network architecture that the authors describe using Flux. Let's start with setting up the convolutional section, as described in Zhang et al.'s (2017) paper.</p>
+<div class="highlight"><pre><span></span><span class="n">net</span> <span class="o">=</span> <span class="n">Chain</span><span class="p">(</span><span class="n">Conv</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="mi">3</span><span class="o">=&gt;</span><span class="mi">128</span><span class="p">,</span> <span class="n">relu</span><span class="p">;</span> <span class="n">pad</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+            <span class="n">x</span> <span class="o">-&gt;</span> <span class="n">maxpool</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">)),</span>
+            <span class="n">Dropout</span><span class="p">(</span><span class="mf">0.3</span><span class="p">),</span>
+            <span class="n">Conv</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="mi">128</span><span class="o">=&gt;</span><span class="mi">128</span><span class="p">,</span> <span class="n">relu</span><span class="p">;</span> <span class="n">pad</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+            <span class="n">Dropout</span><span class="p">(</span><span class="mf">0.3</span><span class="p">),</span>
+            <span class="n">Conv</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="mi">128</span><span class="o">=&gt;</span><span class="mi">128</span><span class="p">,</span> <span class="n">relu</span><span class="p">;</span> <span class="n">pad</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+            <span class="n">Dropout</span><span class="p">(</span><span class="mf">0.3</span><span class="p">),</span>
+            <span class="n">Conv</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="mi">128</span><span class="o">=&gt;</span><span class="mi">128</span><span class="p">,</span> <span class="n">relu</span><span class="p">;</span> <span class="n">pad</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+            <span class="n">Dropout</span><span class="p">(</span><span class="mf">0.3</span><span class="p">),</span>
+            <span class="n">Conv</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="mi">128</span><span class="o">=&gt;</span><span class="mi">256</span><span class="p">,</span> <span class="n">relu</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+            <span class="n">Dropout</span><span class="p">(</span><span class="mf">0.3</span><span class="p">),</span>
+            <span class="n">Conv</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="mi">256</span><span class="o">=&gt;</span><span class="mi">256</span><span class="p">,</span> <span class="n">relu</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+            <span class="n">Dropout</span><span class="p">(</span><span class="mf">0.3</span><span class="p">),</span>
+            <span class="n">Conv</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="mi">256</span><span class="o">=&gt;</span><span class="mi">256</span><span class="p">,</span> <span class="n">relu</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+            <span class="n">Dropout</span><span class="p">(</span><span class="mf">0.3</span><span class="p">),</span>
+            <span class="n">Conv</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="mi">256</span><span class="o">=&gt;</span><span class="mi">256</span><span class="p">,</span> <span class="n">relu</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+            <span class="n">Dropout</span><span class="p">(</span><span class="mf">0.3</span><span class="p">),</span>
+            <span class="n">Conv</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="mi">256</span><span class="o">=&gt;</span><span class="mi">256</span><span class="p">,</span> <span class="n">relu</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+            <span class="n">Dropout</span><span class="p">(</span><span class="mf">0.3</span><span class="p">),</span>
+            <span class="n">Conv</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="mi">256</span><span class="o">=&gt;</span><span class="mi">256</span><span class="p">,</span> <span class="n">relu</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+            <span class="n">Dropout</span><span class="p">(</span><span class="mf">0.3</span><span class="p">),</span>
+            <span class="n">x</span> <span class="o">-&gt;</span> <span class="n">transpose</span><span class="p">(</span><span class="n">reshape</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">size</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">prod</span><span class="p">(</span><span class="n">size</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="mi">2</span><span class="o">:</span><span class="k">end</span><span class="p">]))),</span>
+            <span class="n">Dense</span><span class="p">(</span><span class="mi">3328</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="n">relu</span><span class="p">),</span>
+            <span class="n">Dropout</span><span class="p">(</span><span class="mf">0.3</span><span class="p">),</span>
+            <span class="n">Dense</span><span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="n">relu</span><span class="p">),</span>
+            <span class="n">Dropout</span><span class="p">(</span><span class="mf">0.3</span><span class="p">),</span>
+            <span class="n">Dense</span><span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="n">relu</span><span class="p">),</span>
+            <span class="n">Dropout</span><span class="p">(</span><span class="mf">0.3</span><span class="p">),</span>
+            <span class="n">Dense</span><span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">62</span><span class="p">),</span>
+<span class="n">logsoftmax</span><span class="p">)</span> <span class="o">|&gt;</span> <span class="n">gpu</span>
+</pre></div>
+
+
+<p><strong>Note</strong>, the actual architecture specification for the best performing network uses <code>maxout</code> instead of <code>relu</code>, but I have not yet implemented the <code>maxout</code> activation function. Once I have implemented the <code>maxout</code> function, I will update this post accordingly.</p>
+<p>Using the <code>Chain</code> function, we can declare these layers in a remarkably clean, almost delcarative fashion. The results of evaluating this particular <code>Chain</code> function will give us a function called <code>convSection</code> that will take in data and then feed it through each of those layers. </p>
+<p>Also note the <code>|&gt; gpu</code> at the end. This is actually one of Flux's coolest features, in my opinion. If you've set up CUDA support in your Julia installation, and if you've put <code>using CuArrays</code> at the top of your script, <code>|&gt; gpu</code> will automatically push this whole chain to the GPU as a <code>CuArray</code>! Then operations that are called on it or use it will use CUDA on the GPU!! It's so easy! (Can you tell by my exclamation marks that I'm excited about this?)</p>
+<p>Overall, what the network is structured to do is send whatever data is contained in <code>x</code> into the convolutional layers, reshape it into time steps, and then send the reshaped array into the dense section.</p>
+<h1>Conclusion</h1>
+<p>That's it for building the architecture of our network. Pretty simple, right? That's the beauty of using Flux!</p>
+<p>If you would like to see the script where I use this network for automatic speech recognition, feel free to <a href="https://github.com/maetshju/gsoc2018/blob/master/speech-cnn/02-speech-cnn.jl">check it out on my GitHub</a>. Note that it is still under active development, so it is liable to change. However, the general structure and ideas should be present.</p>
+<h1>References</h1>
+<p>Zhang, Y., Pezeshki, M., Brakel, P., Zhang, S., Bengio, C. L. Y., &amp; Courville, A. (2017). Towards end-to-end speech recognition with deep convolutional neural networks. <em>arXiv preprint arXiv:1701.02720</em>.</p>
+        </section>
+
+        <br><br><br>
+
+        <footer>
+          <div class="adjust-width">
+            <div id="author-block" class="w3-light-grey w3-border">
+              <div id="author-info">
+                <a href=""><img style="width: 60px; height: 60px;" src="theme/images/avatar.jpg" onerror="this.src='theme/images/avatar.png'" alt="Avatar"></a>
+                <div style="margin-left: 20px; margin-top: 15px;">
+                  <a href=""><span id="author-name" class="w3-hover-text-dark-grey">Matt Kelley</span></a>
+                  <p id="author-story">I'm a PhD student at the University of Alberta. I am participating in Google Summer of Code 2018. I'm working on implementing and documenting a deep neural net for speech recognition with the Flux machine learning library in the Julia programming language.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <br><br><br>
+
+          <p style="font-size:10pt; font-style: italic;">Did you like this article? Share it with your friends!</p>
+          <div id="share" class="share">
+            <a href="http://www.facebook.com/sharer.php?u=/architecture.html&amp;t=GSoC%202018%20Blog%3A%20%22The%20network%20architecture%22" target="_blank" class="w3-btn w3-indigo">
+              <i class="fa fa-facebook"></i> <span>Facebook</span>
+            </a>
+            <a href="http://twitter.com/share?url=/architecture.html&amp;text=GSoC%202018%20Blog%3A%20%22The%20network%20architecture%22" target="_blank" class="w3-btn w3-blue">
+              <i class="fa fa-twitter"></i> <span>Twitter</span>
+            </a>
+            <a href="https://plus.google.com/share?url=/architecture.html" onclick="javascript:window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;" class="w3-btn w3-red">
+              <i class="fa fa-google-plus"></i> <span>Google</span>
+            </a>
+          </div>
+
+          <br><br><br>
+
+
+
+        </footer>
+      </div>
+    </article>
+
+
+    <footer id="footer">
+      <div id="footer-copyright" class="w3-center w3-small w3-text-grey w3-padding-48">
+        <span>&copy; 2018 Matt Kelley </span>
+      </div>
+    </footer>
+
+
+
+  </body>
+</html>

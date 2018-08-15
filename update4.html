@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>"Update: Bug-fixing and interfacing" &ndash; GSoC 2018 Blog</title>
+
+    <!-- Meta -->
+    <meta name="description" content="GSoC 2018 Blog &ndash; ">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Social -->
+    <meta property="article:author" content="Matt Kelley" />
+    <meta property="article:section" content="updates" />
+    <meta property="article:published_time" content="2018-07-24" />
+
+    <meta property="og:type" content="article"/>
+    <meta property="og:title" content=""Update: Bug-fixing and interfacing""/>
+    <meta property="og:description" content="We&#39;re coming into the final stretch of coding for Google Summer of Code 2018 here. The last post I made was not necessarily the most hopeful, but I hope this post will reinvigorate things a bit. I have accomplished quite a bit in these last two weeks, so let&#39;s talk …"/>
+    <meta property="og:site_name" content="GSoC 2018 Blog" />
+    <meta property="og:url" content="/update4.html"/>
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content=""Update: Bug-fixing and interfacing"">
+    <meta name="twitter:description" content="We&#39;re coming into the final stretch of coding for Google Summer of Code 2018 here. The last post I made was not necessarily the most hopeful, but I hope this post will reinvigorate things a bit. I have accomplished quite a bit in these last two weeks, so let&#39;s talk …">
+    <meta name="twitter:url" content="/update4.html">
+
+    <!-- Feed -->
+
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Open+Sans:regular,bold">
+    <link rel="stylesheet" type="text/css" href="/theme/css/w3.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/style.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/jqcloud.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/pygments-highlight-github.css">
+    <link rel="stylesheet" type="text/css" href="/static/custom.css">
+
+    <!-- Icon -->
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+
+    <!-- JavaScript -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script src="/theme/js/jqcloud.min.js"></script>
+  </head>
+
+  <body>
+    <div class="w3-row w3-card w3-white">
+      <header id="header">
+        <a href="/" id="header-logo" title="Home">MK</a>
+        <nav id="header-menu">
+          <ul>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" ><a href="/category/asr.html">asr</a></li>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" ><a href="/category/reflections.html">reflections</a></li>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" ><a href="/category/tips.html">tips</a></li>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" style="font-weight: bold;"><a href="/category/updates.html">updates</a></li>
+          </ul>
+        </nav>
+      </header>
+    </div>
+
+
+
+    <br><br><br>
+
+    <article>
+      <header class="w3-container col-main">
+        <h1>"Update: Bug-fixing and interfacing"</h1>
+        <div class="post-info">
+          <div class="w3-opacity w3-margin-right w3-margin-bottom" style="flex-grow: 1;">
+            <span><time datetime="2018-07-24T00:00:00-06:00">Tue 24 July 2018</time> in <a href="/category/updates.html" title="All articles in category updates">updates</a></span>
+          </div>
+          <div>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/gsoc.html" title="All articles with Gsoc tag">#gsoc</a>
+            </span>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/updates.html" title="All articles with Updates tag">#updates</a>
+            </span>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/ctc.html" title="All articles with Ctc tag">#ctc</a>
+            </span>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/gpu.html" title="All articles with Gpu tag">#gpu</a>
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <br>
+
+
+      <div class="col-main w3-container">
+        <section id="content">
+          <p>We're coming into the final stretch of coding for Google Summer of Code 2018 here. The <a href="https://maetshju.github.io/update3.html">last post I made</a> was not necessarily the most hopeful, but I hope this post will reinvigorate things a bit. I have accomplished quite a bit in these last two weeks, so let's talk about that a bit. In this post, I will discuss getting the loss function to interface with Flux's tracking interface for backpropagation, checking the output of my connectionist temporal classification (CTC) loss against another package's for correctness, and resolving a numerical instability for the function that computes <span class="math">\(\text{ln}(a+b)\)</span>, which is used prevalently in the calculation of the connectionist temporal classification loss and gradients.</p>
+<h1>Connecting CTC loss to Flux's tracking interface</h1>
+<p>I think this was the biggest example of me getting in my own way during the coding process. I had convinced myself that it wasn't going to be feasible within the duration of the project to tie the loss function into Flux's tracker, so I instead just backpropagated the gradients to the network outputs directly, rather than writing the code that would start the backpropagation with the loss value. It was actually remarkably easy to get this to tie into Flux's tracking system, however. The documentation <a href="http://fluxml.ai/Flux.jl/v0.5.3/internals/tracker.html">is quite clear</a> on how this should work, actually, and I simply didn't read it right the first few times through.</p>
+<p>Since the GPU kernels for the CTC loss already calculate the gradients with respect to the network outputs, we just have to return the appropriate interface. As it turns out, it is only a few lines of code:</p>
+<div class="highlight"><pre><span></span><span class="n">ctc</span><span class="p">(</span><span class="n">ŷ</span><span class="o">::</span><span class="n">TrackedArray</span><span class="p">,</span> <span class="n">y</span><span class="o">::</span><span class="kt">AbstractArray</span><span class="p">)</span> <span class="o">=</span> <span class="n">Flux</span><span class="o">.</span><span class="n">Tracker</span><span class="o">.</span><span class="n">track</span><span class="p">(</span><span class="n">ctc</span><span class="p">,</span> <span class="n">ŷ</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+<span class="nd">@grad</span> <span class="k">function</span> <span class="n">ctc</span><span class="p">(</span><span class="n">ŷ</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+    <span class="n">ls</span><span class="p">,</span> <span class="n">gs</span> <span class="o">=</span> <span class="n">ctc</span><span class="p">(</span><span class="n">Flux</span><span class="o">.</span><span class="n">Tracker</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">ŷ</span><span class="p">),</span> <span class="n">y</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mean</span><span class="p">(</span><span class="n">ls</span><span class="p">),</span> <span class="n">Δ</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">Δ</span> <span class="o">.*</span> <span class="n">gpu</span><span class="p">(</span><span class="n">gs</span><span class="p">),</span> <span class="n">Δ</span><span class="p">)</span>
+<span class="k">end</span>
+</pre></div>
+
+
+<p>The first function catches the general use-case where ŷ is the output from a Flux network, i.e., a <code>TrackedArray</code>. It strips the tracking from the array before passing it to the second function, which runs the <code>ctc</code> function and returns the loss value and gradients as appropriate. The first gradient returns is the change in the loss value with respect to the values in ŷ, which is the important one. The values of <span class="math">\(y\)</span> aren't used in gradient backpropagation, so the gradient it receives doesn't do anything.</p>
+<p>But isn't that nice and simple? It was just a few lines of code to set up the CTC loss to interface with the tracker. After making this change, the code runs significantly faster, so I'm quite pleased with getting this to work.</p>
+<h1>Checking the output of the CTC loss</h1>
+<p>One of the things that was concerning was that the network wasn't really learning to predict anything other than the blank label, as I mentioned in the <a href="https://maetshju.github.io/update3.html">last post</a>. One way of debugging whether this was the fault of the CTC loss function itself was to test it against another impelementation. It was helpfully suggested to me to try testing against the <a href="https://github.com/chainer/chainer">Chainer package's</a> implementation, since it was written in Python and NumPy, making it easier to get up and running than something that called out to an external library.</p>
+<p>I set up a script that would calculate the loss for an utterance using my implementation, as well as the Chainer implementation, and then ran this over a sample of 400 utterances. The mean absolute error from comparing these two implementations is 0.93 and the standard deviation of the absolute errors is 0.13 for the whole TIMIT training set, at the scale of values around 800 or 1000. This is insignificant in practice, and could potentially be attributed to floating point imprecision and different implementations of mathematical functions like <code>log</code>. So, the CTC loss I've implemented seems to be operating correctly. Yay!</p>
+<h1>Numerical stability of calculating ln(a+b)</h1>
+<p>The values used in the calculation of the CTC loss are extremely small, since they are repeated multiplications of probabilities. This means that they will tend toward zero. In theoretical math, this is fine, but when working numerically, this poses a problem because we only have so many bits we can use for precision, and if a number gets too small, we get an underflow error. To resolve this problem, it is suggested to work in the log space when calculating this function. This is fine for when the algorithm requires a multiplication, because the equation <span class="math">\(\text{ln}(a * b) = \text{ln}(a) + \text{ln}(b)\)</span> is straightforward. However, it is a bit more difficult to translate the idea of addition from linear space into log space.</p>
+<p>Graves (2012) provides the equation: </p>
+<div class="math">$$\text{ln}(a+b) = \text{ln}\,a + \text{ln}(1+e^{\text{ln}\,b - \text{ln}\,a})\,\,.$$</div>
+<p>Because we are working in log space from the start, <span class="math">\(a\)</span> and <span class="math">\(b\)</span> are already in log space, which means the equation becomes:</p>
+<div class="math">$$\text{ln}(e^a + e^b) = a + \text{ln}(1 + e^{b - a})\,\,.$$</div>
+<p>This works fine when <span class="math">\(a\)</span> and <span class="math">\(b\)</span> are close to each other. However, when they are further apart, overflow and underflow errors can occur when <span class="math">\(b\)</span> is larger than <span class="math">\(a\)</span>. As an example, imagine that <span class="math">\(a = -275\)</span> and <span class="math">\(b = -180\)</span>, which are value similar to what I have observed. If we put these into the second equation, we get</p>
+<div class="math">\begin{align}
+\text{ln}(e^{-275} + e^{-180}) &amp;= -275 + \text{ln}(1 + e^{-180 - -275}) \\
+&amp;= -275 + \text{ln}(1 + e^{95}) \\
+&amp;= -275 + \text{ln}(1 + 1.8112390828890233e41)\,\,.
+\end{align}</div>
+<p>I'm going to stop the derivation here because the issue is apparent. The number <span class="math">\(1.8112390828890233e41\)</span> cannot be represented by a 32-bit floating point number, so Julia gives <code>Inf32</code> as the value for this number. (Note that we work usually with 32-bit numbers on GPUs.) This problem can be solved rather easily, however, by swapping the values of <span class="math">\(a\)</span> and <span class="math">\(b\)</span> so that we get <span class="math">\(a = -180\)</span>, and <span class="math">\(b = -275\)</span>. Plugging these into the second equation again, we get</p>
+<div class="math">\begin{align}
+\text{ln}(e^{-180} + e^{-275}) &amp;= -180 + \text{ln}(1 + e^{-275 - -180}) \\
+&amp;= -180 + \text{ln}(1 + e^{-95})\,\,.
+\end{align}</div>
+<p>I'll stop the derivation here again because it's apparent that this will evaluate to a finite number. Because <span class="math">\(\lim_{x\to-\infty} e^x = 0\)</span>, so when <span class="math">\(e^{-95}\)</span> underflows and subsumes the 1 into the infinite value, calling <code>log</code> on the resulting <code>-Inf32</code> in Julia will return <span class="math">\(0\)</span>, which can be safely added to <span class="math">\(-180\)</span>. This highlights that there is a lack of precision in this calculation, but that is more to do wih using numerical methods at all than it is with the formula itself.</p>
+<p>Making this variable swap in the code stopped the CTC loss calculation from returning <code>Inf</code> for an intermediate loss value even though the numbers that are being summed are themselves finite. The code with checks looks like this:</p>
+<div class="highlight"><pre><span></span><span class="k">function</span> <span class="n">logadd</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+
+    <span class="n">isinf</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="k">return</span> <span class="n">b</span>
+    <span class="n">isinf</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="k">return</span> <span class="n">a</span>
+
+    <span class="k">if</span> <span class="n">a</span> <span class="o">&lt;</span> <span class="n">b</span>
+        <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">b</span><span class="p">,</span> <span class="n">a</span>
+    <span class="k">end</span>
+
+    <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">log</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">exp</span><span class="p">(</span><span class="n">b</span><span class="o">-</span><span class="n">a</span><span class="p">))</span>
+<span class="k">end</span>
+</pre></div>
+
+
+<h1>Summary</h1>
+<p>So what was the point of these tasks? Well, the network is still not making useful predictions while training yet, so each of these tasks eliminates potential causes for mistakes or bugs keeping the network from training. Tying the loss into Flux's tracker ensures I'm backpropagating the loss in a more expected and well-documented way. Checking the CTC loss values for correctness ensures that the GPU kernels are working correctly (at least, for calculating the loss value itself, as opposed to the gradients). And, adding more numerical stability to the log addition function keeps <code>Inf</code> from showing up in the code where it's not supposed to. What's more, resolving these issues for the CTC loss will make it easier to incorporate it into Flux or a package designed to have good interoperability with Flux in the future.</p>
+<p>At present, the network has pushed beyond predicting ony blanks (but still not necessarily anything useful), so I've set it up to train for longer than I have in the past, which I have seen suggested for others using CTC loss who are experiencing this problem. It's looking promising.</p>
+<h1>References</h1>
+<p>Graves, A. (2012). <em>Supervised sequence labelling with recurrent neural networks</em>. Springer, Berlin, Heidelberg.</p>
+<script type="text/javascript">if (!document.getElementById('mathjaxscript_pelican_#%@#$@#')) {
+    var align = "center",
+        indent = "0em",
+        linebreak = "false";
+
+    if (false) {
+        align = (screen.width < 768) ? "left" : align;
+        indent = (screen.width < 768) ? "0em" : indent;
+        linebreak = (screen.width < 768) ? 'true' : linebreak;
+    }
+
+    var mathjaxscript = document.createElement('script');
+    mathjaxscript.id = 'mathjaxscript_pelican_#%@#$@#';
+    mathjaxscript.type = 'text/javascript';
+    mathjaxscript.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/latest.js?config=TeX-AMS-MML_HTMLorMML';
+    mathjaxscript[(window.opera ? "innerHTML" : "text")] =
+        "MathJax.Hub.Config({" +
+        "    config: ['MMLorHTML.js']," +
+        "    TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'AMS' } }," +
+        "    jax: ['input/TeX','input/MathML','output/HTML-CSS']," +
+        "    extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']," +
+        "    displayAlign: '"+ align +"'," +
+        "    displayIndent: '"+ indent +"'," +
+        "    showMathMenu: true," +
+        "    messageStyle: 'normal'," +
+        "    tex2jax: { " +
+        "        inlineMath: [ ['\\\\(','\\\\)'] ], " +
+        "        displayMath: [ ['$$','$$'] ]," +
+        "        processEscapes: true," +
+        "        preview: 'TeX'," +
+        "    }, " +
+        "    'HTML-CSS': { " +
+        "        styles: { '.MathJax_Display, .MathJax .mo, .MathJax .mi, .MathJax .mn': {color: 'inherit ! important'} }," +
+        "        linebreaks: { automatic: "+ linebreak +", width: '90% container' }," +
+        "    }, " +
+        "}); " +
+        "if ('default' !== 'default') {" +
+            "MathJax.Hub.Register.StartupHook('HTML-CSS Jax Ready',function () {" +
+                "var VARIANT = MathJax.OutputJax['HTML-CSS'].FONTDATA.VARIANT;" +
+                "VARIANT['normal'].fonts.unshift('MathJax_default');" +
+                "VARIANT['bold'].fonts.unshift('MathJax_default-bold');" +
+                "VARIANT['italic'].fonts.unshift('MathJax_default-italic');" +
+                "VARIANT['-tex-mathit'].fonts.unshift('MathJax_default-italic');" +
+            "});" +
+            "MathJax.Hub.Register.StartupHook('SVG Jax Ready',function () {" +
+                "var VARIANT = MathJax.OutputJax.SVG.FONTDATA.VARIANT;" +
+                "VARIANT['normal'].fonts.unshift('MathJax_default');" +
+                "VARIANT['bold'].fonts.unshift('MathJax_default-bold');" +
+                "VARIANT['italic'].fonts.unshift('MathJax_default-italic');" +
+                "VARIANT['-tex-mathit'].fonts.unshift('MathJax_default-italic');" +
+            "});" +
+        "}";
+    (document.body || document.getElementsByTagName('head')[0]).appendChild(mathjaxscript);
+}
+</script>
+        </section>
+
+        <br><br><br>
+
+        <footer>
+          <div class="adjust-width">
+            <div id="author-block" class="w3-light-grey w3-border">
+              <div id="author-info">
+                <a href=""><img style="width: 60px; height: 60px;" src="theme/images/avatar.jpg" onerror="this.src='theme/images/avatar.png'" alt="Avatar"></a>
+                <div style="margin-left: 20px; margin-top: 15px;">
+                  <a href=""><span id="author-name" class="w3-hover-text-dark-grey">Matt Kelley</span></a>
+                  <p id="author-story">I'm a PhD student at the University of Alberta. I am participating in Google Summer of Code 2018. I'm working on implementing and documenting a deep neural net for speech recognition with the Flux machine learning library in the Julia programming language.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <br><br><br>
+
+          <p style="font-size:10pt; font-style: italic;">Did you like this article? Share it with your friends!</p>
+          <div id="share" class="share">
+            <a href="http://www.facebook.com/sharer.php?u=/update4.html&amp;t=GSoC%202018%20Blog%3A%20%22Update%3A%20Bug-fixing%20and%20interfacing%22" target="_blank" class="w3-btn w3-indigo">
+              <i class="fa fa-facebook"></i> <span>Facebook</span>
+            </a>
+            <a href="http://twitter.com/share?url=/update4.html&amp;text=GSoC%202018%20Blog%3A%20%22Update%3A%20Bug-fixing%20and%20interfacing%22" target="_blank" class="w3-btn w3-blue">
+              <i class="fa fa-twitter"></i> <span>Twitter</span>
+            </a>
+            <a href="https://plus.google.com/share?url=/update4.html" onclick="javascript:window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;" class="w3-btn w3-red">
+              <i class="fa fa-google-plus"></i> <span>Google</span>
+            </a>
+          </div>
+
+          <br><br><br>
+
+
+
+        </footer>
+      </div>
+    </article>
+
+
+    <footer id="footer">
+      <div id="footer-copyright" class="w3-center w3-small w3-text-grey w3-padding-48">
+        <span>&copy; 2018 Matt Kelley </span>
+      </div>
+    </footer>
+
+
+
+  </body>
+</html>

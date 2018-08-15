@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>"First status update" &ndash; GSoC 2018 Blog</title>
+
+    <!-- Meta -->
+    <meta name="description" content="GSoC 2018 Blog &ndash; ">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Social -->
+    <meta property="article:author" content="Matt Kelley" />
+    <meta property="article:section" content="updates" />
+    <meta property="article:published_time" content="2018-06-11" />
+
+    <meta property="og:type" content="article"/>
+    <meta property="og:title" content=""First status update""/>
+    <meta property="og:description" content="We are upon the first evaluation period, so it&#39;s a good time to check in. My time so far in the Google Summer of Code program has been a joy. It&#39;s been wonderful to be able to interact with a coding community and spend a significant amount of time working …"/>
+    <meta property="og:site_name" content="GSoC 2018 Blog" />
+    <meta property="og:url" content="/update1.html"/>
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content=""First status update"">
+    <meta name="twitter:description" content="We are upon the first evaluation period, so it&#39;s a good time to check in. My time so far in the Google Summer of Code program has been a joy. It&#39;s been wonderful to be able to interact with a coding community and spend a significant amount of time working …">
+    <meta name="twitter:url" content="/update1.html">
+
+    <!-- Feed -->
+
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Open+Sans:regular,bold">
+    <link rel="stylesheet" type="text/css" href="/theme/css/w3.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/style.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/jqcloud.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/pygments-highlight-github.css">
+    <link rel="stylesheet" type="text/css" href="/static/custom.css">
+
+    <!-- Icon -->
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+
+    <!-- JavaScript -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script src="/theme/js/jqcloud.min.js"></script>
+  </head>
+
+  <body>
+    <div class="w3-row w3-card w3-white">
+      <header id="header">
+        <a href="/" id="header-logo" title="Home">MK</a>
+        <nav id="header-menu">
+          <ul>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" ><a href="/category/asr.html">asr</a></li>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" ><a href="/category/reflections.html">reflections</a></li>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" ><a href="/category/tips.html">tips</a></li>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" style="font-weight: bold;"><a href="/category/updates.html">updates</a></li>
+          </ul>
+        </nav>
+      </header>
+    </div>
+
+
+
+    <br><br><br>
+
+    <article>
+      <header class="w3-container col-main">
+        <h1>"First status update"</h1>
+        <div class="post-info">
+          <div class="w3-opacity w3-margin-right w3-margin-bottom" style="flex-grow: 1;">
+            <span><time datetime="2018-06-11T00:00:00-06:00">Mon 11 June 2018</time> in <a href="/category/updates.html" title="All articles in category updates">updates</a></span>
+          </div>
+          <div>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/gsoc.html" title="All articles with Gsoc tag">#gsoc</a>
+            </span>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/updates.html" title="All articles with Updates tag">#updates</a>
+            </span>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/architecture.html" title="All articles with Architecture tag">#architecture</a>
+            </span>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/ctc.html" title="All articles with Ctc tag">#ctc</a>
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <br>
+
+
+      <div class="col-main w3-container">
+        <section id="content">
+          <p>We are upon the first evaluation period, so it's a good time to check in. My time so far in the Google Summer of Code program has been a joy. It's been wonderful to be able to interact with a coding community and spend a significant amount of time working on a coding project. Up until now, I am on track with the proposal that I set out to implement the neural net speech recognition system in Zhang et al. (2017) using Flux and Julia and contribute it to the model zoo. These first few weeks have been devoted to extracting data, setting up the network architecture, and beginning the implementation of the connectionist temporal classification loss function. I will explain a bit more about each of these below.</p>
+<h1>Extracting speech data</h1>
+<p><a href="https://maetshju.github.io/speech-features.html">As I've written about before</a>, the first task that I accomplished was writing the code that would extract speech data from the TIMIT speech corpus. This is something that I have done a few times before in both Python and Julia, so it was relatively easy task to accomplish.</p>
+<p>I want to emphasize how nice it was to write this in Julia, however. I appreciate that I don't have to call modules like I do in Python, where, for example, walking through a directory would be a call to <code>os.path.walk</code> after importing the <code>os</code> module, compared to what I think is easier to remember in Julia, <code>walkdir</code>, which does not require a module import. The dot-broadcasting functionality also made it easy to write what I consider to be more intelligible code in less space. Compare, for example, trying to fill a <code>Vector</code> with the logged values of another. If you have the values you want to log in a variable called <code>a</code>, all you need to do is this:</p>
+<div class="highlight"><pre><span></span><span class="n">v</span> <span class="o">=</span> <span class="n">log</span><span class="o">.</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+</pre></div>
+
+
+<p>It's so simple! And, I believe this is cognitively easier for a human to understand while reading through code. Essentially, there is less information to work through to understand what's going on, whereas a for-loop, for example, would require understanding all the involved lines of code and then, hopefully, understanding that all of them together are functioning to create a variable <code>v</code> with the logged values of <code>a</code>.</p>
+<p>In short, I've come to enjoy working in Julia even more because of how it removes some overhead that you might have to deal with in other languages, and it also provides practical syntactic sugar that makes it easier to write and read code, when used correctly.</p>
+<p>The resulting script can be found <a href="https://github.com/maetshju/gsoc2018/blob/master/speech-cnn/00-data.jl">in my GitHub repository</a>. I've linked to the one in the master branch, which is supposed to be cleaner, but you can take a look at the daily branch if you would like to see any incremental updates I make as I make them.</p>
+<h1>Network architecture</h1>
+<p>The next task that I accomplished was implementing the network architecture, which I have discussed in <a href="https://maetshju.github.io/architecture.html">a previous blog post</a>. Flux makes this a pretty straightforward experience. It allows for an almost declarative style of designing network architecture when it's convenient, but it also makes it easy to drill down and modify parts of the learning process as necessary. This is what I've done for creating the <code>model</code> function in the script I implemented, for which I was able to easily take the time steps contained in my convolutions and feed each of them individually to the fully-connected layers. Implementing this architecture was a very enjoyable process, and it really showed me some of the flexibiliy of Flux. I come from a Keras background, so I find Flux's approach refreshing.</p>
+<p>I will note that I have currently not been using the <code>Dropout</code> layers while testing the network because they have been <a href="https://github.com/FluxML/Flux.jl/issues/265">found to run slowly on GPUs</a>. However, <a href="https://github.com/FluxML/Flux.jl/pull/266">there has been a patch recently</a> that i don't believe I've installed yet, so I will be getting the <code>Dropout</code> layers running in the very near future.</p>
+<p>The current implementation of the network is <a href="https://github.com/maetshju/gsoc2018/blob/master/speech-cnn/02-speech-cnn.jl">up on my GitHub</a>. The incremental upates can be tracked on the daily branch, if you're interested.</p>
+<h1>Implementing the connectionist temporal classification loss</h1>
+<p>This was my biggest bugbear coming into this coding project. My previous looks at the loss function saw that it would be difficult to mention, and I've heard from other posters around the internet that it can be hard to implement at all, let alone on a GPU for fast computation.</p>
+<p>There is a piece of advice that I hewed closely to:</p>
+<p><code>Give me six hours to chop down a tree and I will spend the first four sharpening the axe. (Anonymous)</code></p>
+<p>It's often attributed to Abraham Lincoln, but we have no evidence that he every said it. But anyway, I spent quite a while sharpening my axe, so to speak, by poring over the specifications for the connectionist temporal classification loss in Graves (2012) and writing out a rough code sketch of what I wanted the functions to look like. It was vey easy to move from the sketches into the actual code. Or so it seemed...</p>
+<p>I was plagued with two problems, both of which I brought onto myself and had nothing to do with Julia or Flux themselves. The first problem was  that of interfacing with Flux's tracker to take advantage of automatic differentiation. I had originally used an iterative impelementation of the connectionist temporal classification algorithm by creating matrices instead of performing recursion, but I realized that I had inadvertently divorced the values in the matrices from the tracker in Flux, so the gradients could no longer be automatically found using automatic differentiation. This was my own doing from not understanding how the tracker worked at first and not paying enough attention to the error messages. To resolve this issue, I ended up rewriting the code to be recursive instead of iterative, and memoized the relevant functions using <a href="https://github.com/simonster/Memoize.jl">the Memoize.jl package</a>, paying careful attention to not strip the values I was working with away from Flux's tracker. It's possible that this would have worked with the matrix implementation if I were more careful, but I haven't attempted the matrix implementation again.</p>
+<p>The second issue I encountered was that of numerical stability. The values that are worked with in this loss function become incredibly small because it involves repeated multiplication of probability values.  As such, Graves's (2012) implementation details suggest working as much as possible in the log space. This is all well and good, but some of the computations still involve linear space operations. Because of the use of a <code>softmax</code> activation function at the end of the network, sometimes the values going into the log space operations were 0 or effectively 0, which caused problems with the log space operations. I believe that I've resolved this issue now by adding a small epsilon value of 1e-7 to the output of the <code>softmax</code> function. This was a recent attempt at a solution, so the jury's still out on whether this will resolve the issue and allow the network to train, but I have been able to get further with training examples here than I have before.</p>
+<p>You can follow my implementation of the connectionist temporal classification <a href="https://github.com/maetshju/gsoc2018/blob/daily/speech-cnn/ctc.jl">on my GitHub</a>. It's still under very active development, so the daily branch should be more up to date with the current state of the function than the master is.</p>
+<h1>Where to go from here</h1>
+<p>At present, my main goal is to finish the implementation of the connectionist temporal classification function, which I projected should be done by the end of this week in my proposal. Along with that, I am working to make sure that the evaluation routines are working correctly so that I can accurately assess how the network is doing.</p>
+<p>It may be worth considering calling out to an existing implementation of connectionist temporal classification at some point, such as <a href="https://github.com/baidu-research/warp-ctc">Baidu's warp-ctc</a>. While I believe there is a pedagogical reason to have a Julia implementation of the function for a model that will appear in Flux's model zoo, if I can't get its performance to match that of an off-the-shelf, well-tested implementation, I think there would be practical benefits from demonstrating how to connect to such a library as well.</p>
+<h1>References</h1>
+<p>Graves, A. (2012). <em>Supervised sequence labelling with recurrent neural networks</em>. Berlin: Springer. Preprint available at <a href="https://www.cs.toronto.edu/~graves/preprint.pdf">https://www.cs.toronto.edu/~graves/preprint.pdf</a>.</p>
+<p>Zhang, Y., Pezeshki, M., Brakel, P., Zhang, S., Bengio, C. L. Y., &amp; Courville, A. (2017). Towards end-to-end speech recognition with deep convolutional neural networks. <em>arXiv preprint arXiv:1701.02720</em>.</p>
+        </section>
+
+        <br><br><br>
+
+        <footer>
+          <div class="adjust-width">
+            <div id="author-block" class="w3-light-grey w3-border">
+              <div id="author-info">
+                <a href=""><img style="width: 60px; height: 60px;" src="theme/images/avatar.jpg" onerror="this.src='theme/images/avatar.png'" alt="Avatar"></a>
+                <div style="margin-left: 20px; margin-top: 15px;">
+                  <a href=""><span id="author-name" class="w3-hover-text-dark-grey">Matt Kelley</span></a>
+                  <p id="author-story">I'm a PhD student at the University of Alberta. I am participating in Google Summer of Code 2018. I'm working on implementing and documenting a deep neural net for speech recognition with the Flux machine learning library in the Julia programming language.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <br><br><br>
+
+          <p style="font-size:10pt; font-style: italic;">Did you like this article? Share it with your friends!</p>
+          <div id="share" class="share">
+            <a href="http://www.facebook.com/sharer.php?u=/update1.html&amp;t=GSoC%202018%20Blog%3A%20%22First%20status%20update%22" target="_blank" class="w3-btn w3-indigo">
+              <i class="fa fa-facebook"></i> <span>Facebook</span>
+            </a>
+            <a href="http://twitter.com/share?url=/update1.html&amp;text=GSoC%202018%20Blog%3A%20%22First%20status%20update%22" target="_blank" class="w3-btn w3-blue">
+              <i class="fa fa-twitter"></i> <span>Twitter</span>
+            </a>
+            <a href="https://plus.google.com/share?url=/update1.html" onclick="javascript:window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;" class="w3-btn w3-red">
+              <i class="fa fa-google-plus"></i> <span>Google</span>
+            </a>
+          </div>
+
+          <br><br><br>
+
+
+
+        </footer>
+      </div>
+    </article>
+
+
+    <footer id="footer">
+      <div id="footer-copyright" class="w3-center w3-small w3-text-grey w3-padding-48">
+        <span>&copy; 2018 Matt Kelley </span>
+      </div>
+    </footer>
+
+
+
+  </body>
+</html>

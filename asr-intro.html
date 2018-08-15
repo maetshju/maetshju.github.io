@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>"A high-level introduction to ASR" &ndash; GSoC 2018 Blog</title>
+
+    <!-- Meta -->
+    <meta name="description" content="GSoC 2018 Blog &ndash; ">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Social -->
+    <meta property="article:author" content="Matt Kelley" />
+    <meta property="article:section" content="asr" />
+    <meta property="article:published_time" content="2018-05-27" />
+
+    <meta property="og:type" content="article"/>
+    <meta property="og:title" content=""A high-level introduction to ASR""/>
+    <meta property="og:description" content="In the last post, we discussed the acoustic basis of speech. In this post, we&#39;ll build on those concepts to discuss automatch speech recogntion in preparation for extracting the features we&#39;ll use as data in the next post. Automatic speech recognition Automatic speech recognition is the process of having computer …"/>
+    <meta property="og:site_name" content="GSoC 2018 Blog" />
+    <meta property="og:url" content="/asr-intro.html"/>
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content=""A high-level introduction to ASR"">
+    <meta name="twitter:description" content="In the last post, we discussed the acoustic basis of speech. In this post, we&#39;ll build on those concepts to discuss automatch speech recogntion in preparation for extracting the features we&#39;ll use as data in the next post. Automatic speech recognition Automatic speech recognition is the process of having computer …">
+    <meta name="twitter:url" content="/asr-intro.html">
+
+    <!-- Feed -->
+
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Open+Sans:regular,bold">
+    <link rel="stylesheet" type="text/css" href="/theme/css/w3.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/style.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/jqcloud.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/pygments-highlight-github.css">
+    <link rel="stylesheet" type="text/css" href="/static/custom.css">
+
+    <!-- Icon -->
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+
+    <!-- JavaScript -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script src="/theme/js/jqcloud.min.js"></script>
+  </head>
+
+  <body>
+    <div class="w3-row w3-card w3-white">
+      <header id="header">
+        <a href="/" id="header-logo" title="Home">MK</a>
+        <nav id="header-menu">
+          <ul>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" style="font-weight: bold;"><a href="/category/asr.html">asr</a></li>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" ><a href="/category/reflections.html">reflections</a></li>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" ><a href="/category/tips.html">tips</a></li>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" ><a href="/category/updates.html">updates</a></li>
+          </ul>
+        </nav>
+      </header>
+    </div>
+
+
+
+    <br><br><br>
+
+    <article>
+      <header class="w3-container col-main">
+        <h1>"A high-level introduction to ASR"</h1>
+        <div class="post-info">
+          <div class="w3-opacity w3-margin-right w3-margin-bottom" style="flex-grow: 1;">
+            <span><time datetime="2018-05-27T00:00:00-06:00">Sun 27 May 2018</time> in <a href="/category/asr.html" title="All articles in category asr">asr</a></span>
+          </div>
+          <div>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/asr.html" title="All articles with Asr tag">#asr</a>
+            </span>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/speech.html" title="All articles with Speech tag">#speech</a>
+            </span>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/mfcc.html" title="All articles with Mfcc tag">#mfcc</a>
+            </span>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/mel.html" title="All articles with Mel tag">#mel</a>
+            </span>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/features.html" title="All articles with Features tag">#features</a>
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <br>
+
+
+      <div class="col-main w3-container">
+        <section id="content">
+          <p>In the last post, we discussed the acoustic basis of speech. In this post, we'll build on those concepts to discuss automatch speech recogntion in preparation for extracting the features we'll use as data in the next post.</p>
+<h1>Automatic speech recognition</h1>
+<p>Automatic speech recognition is the process of having computer recognize speech. That is, to recognize what words are contained in an acoustic signal. There are a number of strategies that one could use to approach this problem, but the successful neural network papers that I have come across take the strategy of using the acoustic information in the signal to determine what segments are contained in the signal. Researchers in this area borrow from phonology an abstraction over phones called the <strong>phoneme</strong> as the object to predict. This choice is simultaneously pragmatic and problematic.</p>
+<p>The choice is pragmatic because it reduces the potential number of classes to predict between, since a phoneme is a grouping of phones that don't change the meaning/identity of a word, given a certain context, and there are, as far as I'm aware, always fewer phonemes than phones for a language. The phoneme /t/ can be realized as a number of different phones given the phones that surround it, but choosing another of the group would not change the meaning of an utterance. For example, <em>kitten</em> is usually pronounced more like [kɪʔn̩], but prouncing it as [kɪtn̩] would not change the meaning of the word. So, the phonemic representation of <em>kitten</em> could be said to be /kɪtn̩/, and this would be the target output of a speech recognition system presented with a recording of <em>kitten</em>.</p>
+<p>However, the choice is problematic because phonemic representations of words are theoretical and may not closely match what phones are actually present in the acoustic signal. As such, there is the potential to introduce error into the training data by forcing the network to output predictions for a phoneme that isn't acoustically present in a word. In usage scenarios, a strict reliance on a mapping from phoneme sequences to words will be fragile, as well, because the phone sequence a user utters may not actually map well to the phoneme sequences that the system is using to map to words. Additionally, it is not agreed upon among phoneticians that phonemes actually exist cognitively or physically (see Port &amp; Leary (2005)](https://www.cs.indiana.edu/~port/pap/AgainstFormalPhonology.June2.05.pdf)) for a discussion on why phonemes are problematic in linguistic theory).</p>
+<p>With that out of the way, the idea of phonemes is still useful for our purposes, so we'll leave it at this: Phonemes are useful tools, regardless of whether or not they exist cognitively or physically.</p>
+<p>So, okay, where are we? We've defined the output type for our neural network: phoneme labels for whatever data we feed into it. Now, we need to determine what kind of data we'll feed into it.</p>
+<h2>Representations of speech data</h2>
+<p>There are myriad ways of representing speech data. There is simply the vector of intensity measures (essentially, the waveform), which has been used in some recent speech recognition papers to decent effect (see, for example, Palaz, Collobert, &amp; Doss, 2013). Often, however, researchers have some sort of frequency information in their representation. Because the human perceptual system responds in an approximately logarithmic way to different frequencies (Johnson, 2012), a variety of nonlinear frequency scales have been devised. Some examples include the <a href="https://en.wikipedia.org/wiki/Mel_scale">Mel scale</a> (Wikipedia contributors, 2018) and the <a href="https://en.wikipedia.org/wiki/Bark_scale">Bark scale</a>(Wikipedia contributors, 2017). However, for speech recognition, I have only encountered features derived from the Mel scale. Primarily, it seems Mel filterbanks and Mel-frequency cepstral coefficients (abbreviated MFCCs) have been used.</p>
+<p>A filterbank is effectively a quantification of how much energy is contained in certain bins of frequency ranges. The bins for the frequency ranges are arbitrary. As an arbitrary example you could have a 2-filter filterbank that had two numbers: the amount of energy between 0 and 5000 Hz, and the amount of energy between 5000 and 10,000 Hz. A Mel filterbank is just a filterbank where the boundaries for the bins are spaced along the Mel scale instead of a linear frequency scale. Lyons (n.d.) has <a href="http://practicalcryptography.com/miscellaneous/machine-learning/guide-mel-frequency-cepstral-coefficients-mfccs/">a good discussion on Practical Cryptography</a> of the math behind calculating these filterbank values. Just stop before taking the discrete cosine transform, or you'll end up with MFCCs insted of a Mel filterbank.</p>
+<p>Mel-frequency cepstral coefficients have been used for a long time in speech recognition research, and they are just one stop beyond the Mel filterbanks. Take the discrete cosine transform of the Mel filterbank, and you will have the MFCCs. I have heard them described as a spectrum of a spectrum, which still doesn't have a clear meaning to me, but perhaps it will for you. They come from a literal spectrum of a spectrum, but that that means is difficult for me to understand, and I believe a lot of speech researchers share this difficulty of knowing what MFCCs mean beyond the simplistic notion of them representing frquency information at some level.</p>
+<p>There is sometimes talk of delta and delta-delta coefficients, and these are represntations of how the features are changing over time, and how the rate of change of the features is changing over time. Conceptually, this is similar to first- and second-order derivatives, but they are calculated slightly differently. The formula for them can be found in Lyons' (n.d.) discussion of calculating MFCCs as well.</p>
+<p>I have seen some studies that use spectrograms (like those included above) and perform image processing on them, but, as a speech researcher, I am not personally interested in using machine vision <em>per se</em> to perform audition. As such, I don't have much experience with this approach and can't provide much of a summary.</p>
+<p>Regardless, for the model we will implement, Zhang et al. (2017) chose to use Mel filterbanks, so that is what we will proceed with. If you are interested in other potential speech features, Meftah, Alotaibi, &amp; Selouani (2016) compare a variety of options for recognizing Arabic phonemes. And, lucky for us, there is already a package in Julia that will calculate these features for us! We'll cover that in the next post.</p>
+<h1>References</h1>
+<p>Lyons, J. (n.d.) <em>Mel frequency cepstral coefficient (MFCC) tutorial</em>. Retrieved May 26, 2018 from <a href="https://web.archive.org/web/20180527045302/http://practicalcryptography.com/miscellaneous/machine-learning/guide-mel-frequency-cepstral-coefficients-mfccs/">https://web.archive.org/web/20180527045302/http://practicalcryptography.com/miscellaneous/machine-learning/guide-mel-frequency-cepstral-coefficients-mfccs/</a>.</p>
+<p>Meftah, A., Alotaibi, Y. A., &amp; Selouani, S. A. (2016). A comparative study of different speech features for Arabic phonemes classification. In <em>Modelling Symposium (EMS), 2016, European</em> (pp. 47-52). IEEE.</p>
+<p>Palaz, D., Collobert, R., &amp; Doss, M. M. (2013). Estimating phoneme class conditional probabilities from raw speech signal using convolutional neural networks. <em>arXiv preprint arXiv:1304.1018</em>.</p>
+<p>Port, R. F., &amp; Leary, A. P. (2005). Against formal phonology. <em>Language, 81</em>(4), 927-964.</p>
+<p>Wikipedia contributors. (2018). Mel scale. In <em>Wikipedia, the free encyclopedia</em>. Retrieved May 26, 2018, from <a href="https://en.wikipedia.org/w/index.php?title=Mel_scale&amp;oldid=832004295">https://en.wikipedia.org/w/index.php?title=Mel_scale&amp;oldid=832004295</a>.</p>
+<p>Zhang, Y., Pezeshki, M., Brakel, P., Zhang, S., Bengio, C. L. Y., &amp; Courville, A. (2017). Towards end-to-end speech recognition with deep convolutional neural networks. <em>arXiv preprint arXiv:1701.02720</em>.</p>
+        </section>
+
+        <br><br><br>
+
+        <footer>
+          <div class="adjust-width">
+            <div id="author-block" class="w3-light-grey w3-border">
+              <div id="author-info">
+                <a href=""><img style="width: 60px; height: 60px;" src="theme/images/avatar.jpg" onerror="this.src='theme/images/avatar.png'" alt="Avatar"></a>
+                <div style="margin-left: 20px; margin-top: 15px;">
+                  <a href=""><span id="author-name" class="w3-hover-text-dark-grey">Matt Kelley</span></a>
+                  <p id="author-story">I'm a PhD student at the University of Alberta. I am participating in Google Summer of Code 2018. I'm working on implementing and documenting a deep neural net for speech recognition with the Flux machine learning library in the Julia programming language.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <br><br><br>
+
+          <p style="font-size:10pt; font-style: italic;">Did you like this article? Share it with your friends!</p>
+          <div id="share" class="share">
+            <a href="http://www.facebook.com/sharer.php?u=/asr-intro.html&amp;t=GSoC%202018%20Blog%3A%20%22A%20high-level%20introduction%20to%20ASR%22" target="_blank" class="w3-btn w3-indigo">
+              <i class="fa fa-facebook"></i> <span>Facebook</span>
+            </a>
+            <a href="http://twitter.com/share?url=/asr-intro.html&amp;text=GSoC%202018%20Blog%3A%20%22A%20high-level%20introduction%20to%20ASR%22" target="_blank" class="w3-btn w3-blue">
+              <i class="fa fa-twitter"></i> <span>Twitter</span>
+            </a>
+            <a href="https://plus.google.com/share?url=/asr-intro.html" onclick="javascript:window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;" class="w3-btn w3-red">
+              <i class="fa fa-google-plus"></i> <span>Google</span>
+            </a>
+          </div>
+
+          <br><br><br>
+
+
+
+        </footer>
+      </div>
+    </article>
+
+
+    <footer id="footer">
+      <div id="footer-copyright" class="w3-center w3-small w3-text-grey w3-padding-48">
+        <span>&copy; 2018 Matt Kelley </span>
+      </div>
+    </footer>
+
+
+
+  </body>
+</html>

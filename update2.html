@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>"Second status update" &ndash; GSoC 2018 Blog</title>
+
+    <!-- Meta -->
+    <meta name="description" content="GSoC 2018 Blog &ndash; ">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Social -->
+    <meta property="article:author" content="Matt Kelley" />
+    <meta property="article:section" content="updates" />
+    <meta property="article:published_time" content="2018-06-27" />
+
+    <meta property="og:type" content="article"/>
+    <meta property="og:title" content=""Second status update""/>
+    <meta property="og:description" content="These last two weeks have been spent working on the connectionist temporal classification loss function. Last post, I mentioned that was my bugbear for this project because it is difficult to get coded and working correctly. Coding it up has been an odyssey, to say the least. It&#39;s not been …"/>
+    <meta property="og:site_name" content="GSoC 2018 Blog" />
+    <meta property="og:url" content="/update2.html"/>
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content=""Second status update"">
+    <meta name="twitter:description" content="These last two weeks have been spent working on the connectionist temporal classification loss function. Last post, I mentioned that was my bugbear for this project because it is difficult to get coded and working correctly. Coding it up has been an odyssey, to say the least. It&#39;s not been …">
+    <meta name="twitter:url" content="/update2.html">
+
+    <!-- Feed -->
+
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Open+Sans:regular,bold">
+    <link rel="stylesheet" type="text/css" href="/theme/css/w3.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/style.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/jqcloud.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="/theme/css/pygments-highlight-github.css">
+    <link rel="stylesheet" type="text/css" href="/static/custom.css">
+
+    <!-- Icon -->
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+
+    <!-- JavaScript -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script src="/theme/js/jqcloud.min.js"></script>
+  </head>
+
+  <body>
+    <div class="w3-row w3-card w3-white">
+      <header id="header">
+        <a href="/" id="header-logo" title="Home">MK</a>
+        <nav id="header-menu">
+          <ul>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" ><a href="/category/asr.html">asr</a></li>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" ><a href="/category/reflections.html">reflections</a></li>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" ><a href="/category/tips.html">tips</a></li>
+            <li class="w3-bottombar w3-border-white w3-hover-border-green" style="font-weight: bold;"><a href="/category/updates.html">updates</a></li>
+          </ul>
+        </nav>
+      </header>
+    </div>
+
+
+
+    <br><br><br>
+
+    <article>
+      <header class="w3-container col-main">
+        <h1>"Second status update"</h1>
+        <div class="post-info">
+          <div class="w3-opacity w3-margin-right w3-margin-bottom" style="flex-grow: 1;">
+            <span><time datetime="2018-06-27T00:00:00-06:00">Wed 27 June 2018</time> in <a href="/category/updates.html" title="All articles in category updates">updates</a></span>
+          </div>
+          <div>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/gsoc.html" title="All articles with Gsoc tag">#gsoc</a>
+            </span>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/updates.html" title="All articles with Updates tag">#updates</a>
+            </span>
+            <span class="w3-tag w3-light-grey w3-text-green w3-hover-green">
+              <a href="/tag/ctc.html" title="All articles with Ctc tag">#ctc</a>
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <br>
+
+
+      <div class="col-main w3-container">
+        <section id="content">
+          <p>These last two weeks have been spent working on the connectionist temporal classification loss function. Last post, I mentioned that was my bugbear for this project because it is difficult to get coded and working correctly. Coding it up has been an odyssey, to say the least. It's not been hard in the sense that it's undoable, but rather that there are many moving parts, and just because you have a working implementation doesn't mean it will be parallelizing correctly or running efficiently. And that's what I think I want to spend this post on.</p>
+<p>I've spent a good amount of time during these past two weeks on getting a GPU version of the connectionist temporal classification loss working. The implementation is based on <a href="https://github.com/baidu-research/warp-ctc">Baidu's warp-ctc</a>, though I have not written code to do all of their tricks for moving objects between register and shared memory (and may not have the time for it before the end of the summer of code). It's been an ongoing process because this algorithm is not of the <a href="https://en.wikipedia.org/wiki/Embarrassingly_parallel">embarrassingly parallel</a> variety of algorithms. As such, the process of getting it running on a GPU has been at turns fascinating and frustrating. I'm fascinated because I haven't actually written GPU kernels before now, and learning how they work is quite interesting. It's frustrating, however, because it's a new way of thinking about programming for me, and that means that there will be lots of head banging against a wall and brute force attempts to get something to work. But at the end of the day, it's impressive (to me at least) to think about splitting a nontrivial problem into many parallel processes for a GPU to work on.</p>
+<p>Nonetheless, Julia thankfully makes GPU programming easier than it might otherwise be. The <a href="https://github.com/JuliaGPU/CUDAnative.jl">CUDAnative.jl</a> package makes it as pleasant as possible to write GPU kernels using Julia code. (I mean, imagine having to write a kernel in C++! Yuck!*).</p>
+<p>I'm nearing the end of testing the GPU kernels for correctness, so I should be able to start training the network in earnest very soon. I also anticipate writing a post about connectionist temporal classification so that newcomers can benefit from the knowledge I've gained while implementing this algorithm on both the CPU and the GPU.</p>
+<p>If you would like to follow my development on this algorithm, you can look at the <a href="https://github.com/maetshju/gsoc2018/blob/daily/speech-cnn/warp-ctc.jl">warp-ctc.jl</a> file on my GitHub. I try to push daily to the daily branch, though it's often messy until I want to merge it with the master branch. You've been warned.</p>
+<p>* - To all the C++ programmers out there, you are wonderful human beings and I am impressed with your ability to understand that process. It's not for me, though. (Please don't @ me.)</p>
+        </section>
+
+        <br><br><br>
+
+        <footer>
+          <div class="adjust-width">
+            <div id="author-block" class="w3-light-grey w3-border">
+              <div id="author-info">
+                <a href=""><img style="width: 60px; height: 60px;" src="theme/images/avatar.jpg" onerror="this.src='theme/images/avatar.png'" alt="Avatar"></a>
+                <div style="margin-left: 20px; margin-top: 15px;">
+                  <a href=""><span id="author-name" class="w3-hover-text-dark-grey">Matt Kelley</span></a>
+                  <p id="author-story">I'm a PhD student at the University of Alberta. I am participating in Google Summer of Code 2018. I'm working on implementing and documenting a deep neural net for speech recognition with the Flux machine learning library in the Julia programming language.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <br><br><br>
+
+          <p style="font-size:10pt; font-style: italic;">Did you like this article? Share it with your friends!</p>
+          <div id="share" class="share">
+            <a href="http://www.facebook.com/sharer.php?u=/update2.html&amp;t=GSoC%202018%20Blog%3A%20%22Second%20status%20update%22" target="_blank" class="w3-btn w3-indigo">
+              <i class="fa fa-facebook"></i> <span>Facebook</span>
+            </a>
+            <a href="http://twitter.com/share?url=/update2.html&amp;text=GSoC%202018%20Blog%3A%20%22Second%20status%20update%22" target="_blank" class="w3-btn w3-blue">
+              <i class="fa fa-twitter"></i> <span>Twitter</span>
+            </a>
+            <a href="https://plus.google.com/share?url=/update2.html" onclick="javascript:window.open(this.href, '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;" class="w3-btn w3-red">
+              <i class="fa fa-google-plus"></i> <span>Google</span>
+            </a>
+          </div>
+
+          <br><br><br>
+
+
+
+        </footer>
+      </div>
+    </article>
+
+
+    <footer id="footer">
+      <div id="footer-copyright" class="w3-center w3-small w3-text-grey w3-padding-48">
+        <span>&copy; 2018 Matt Kelley </span>
+      </div>
+    </footer>
+
+
+
+  </body>
+</html>
